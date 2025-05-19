@@ -1,0 +1,157 @@
+@model IEnumerable<MyMvcApp.Models.Patient>
+@{
+    ViewData["Title"] = "Quản lý bệnh nhân";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <partial name="_StaffSidebar" />
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">@ViewData["Title"]</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPatientModal">
+                        <i class="fas fa-plus"></i> Thêm bệnh nhân mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm bệnh nhân...">
+                        <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sortSelect">
+                        <option value="name">Sắp xếp theo tên</option>
+                        <option value="date">Sắp xếp theo ngày tạo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Patient List -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="patientTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Ngày sinh</th>
+                                    <th>Giới tính</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var patient in Model)
+                                {
+                                    <tr>
+                                        <td>@patient.FullName</td>
+                                        <td>@patient.Email</td>
+                                        <td>@patient.PhoneNumber</td>
+                                        <td>@patient.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                                        <td>@patient.Gender</td>
+                                        <td>@patient.Address</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-primary" 
+                                                        onclick="editPatient('@patient.Id')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-info" 
+                                                        onclick="viewDetails('@patient.Id')">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal fade" id="addPatientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm bệnh nhân mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPatientForm">
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên</label>
+                        <input type="text" class="form-control" name="FullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" name="PhoneNumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-control" name="DateOfBirth" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giới tính</label>
+                        <select class="form-select" name="Gender" required>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ</label>
+                        <textarea class="form-control" name="Address" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="savePatient()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#patientTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json'
+                }
+            });
+        });
+
+        function savePatient() {
+            // Implement save patient logic
+        }
+
+        function editPatient(id) {
+            // Implement edit patient logic
+        }
+
+        function viewDetails(id) {
+            // Implement view details logic
+        }
+    </script>
+} 

@@ -1,0 +1,248 @@
+@model MyMvcApp.Models.Appointment
+
+@{
+    ViewData["Title"] = "Tạo lịch hẹn mới";
+}
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <style>
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .container-fluid {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            background-color: #ffffff;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <partial name="_AdminSidebar" />
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Tạo lịch hẹn mới</h1>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form id="createAppointmentForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Bệnh nhân</label>
+                                    <select class="form-select" name="PatientId" required>
+                                        <option value="">-- Chọn bệnh nhân --</option>
+                                        @foreach (var patient in ViewBag.Patients)
+                                        {
+                                            <option value="@patient.Value">@patient.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Dịch vụ</label>
+                                    <select class="form-select" name="ServiceId" required>
+                                        <option value="">-- Chọn dịch vụ --</option>
+                                        @foreach (var service in ViewBag.Services)
+                                        {
+                                            <option value="@service.Value">@service.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Nha sĩ</label>
+                                    <select class="form-select" name="DentistId" required>
+                                        <option value="">-- Chọn nha sĩ --</option>
+                                        @foreach (var dentist in ViewBag.Dentists)
+                                        {
+                                            <option value="@dentist.Value">@dentist.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Ngày hẹn</label>
+                                    <input type="date" class="form-control" name="AppointmentDate" required min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Giờ bắt đầu</label>
+                                    <input type="time" class="form-control" name="StartTime" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Giờ kết thúc</label>
+                                    <input type="time" class="form-control" name="EndTime" required readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea class="form-control" name="Notes" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Hàm tính giờ kết thúc dựa trên giờ bắt đầu và thời gian dịch vụ
+            function calculateEndTime(startTime, duration) {
+                if (!startTime) return '';
+                
+                var [hours, minutes] = startTime.split(':');
+                var startDate = new Date();
+                startDate.setHours(parseInt(hours), parseInt(minutes));
+                
+                var endDate = new Date(startDate.getTime() + duration * 60000);
+                return endDate.toTimeString().slice(0, 5);
+            }
+
+            // Xử lý khi thay đổi dịch vụ
+            $('select[name="ServiceId"]').change(function() {
+                var serviceId = $(this).val();
+                var startTime = $('input[name="StartTime"]').val();
+                
+                if (serviceId && startTime) {
+                    $.get(`/Appointment/GetServiceDuration/${serviceId}`, function(duration) {
+                        var endTime = calculateEndTime(startTime, duration);
+                        $('input[name="EndTime"]').val(endTime);
+                    });
+                }
+            });
+
+            // Xử lý khi thay đổi giờ bắt đầu
+            $('input[name="StartTime"]').change(function() {
+                var startTime = $(this).val();
+                var serviceId = $('select[name="ServiceId"]').val();
+                
+                if (serviceId && startTime) {
+                    $.get(`/Appointment/GetServiceDuration/${serviceId}`, function(duration) {
+                        var endTime = calculateEndTime(startTime, duration);
+                        $('input[name="EndTime"]').val(endTime);
+                    });
+                }
+            });
+
+            // Xử lý submit form
+            $('#createAppointmentForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = new FormData(this);
+                var data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                // Kiểm tra ngày hẹn không được trong quá khứ
+                var appointmentDate = new Date(data.AppointmentDate);
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (appointmentDate < today) {
+                    showErrorMessage('Không thể đặt lịch hẹn cho ngày trong quá khứ');
+                    return;
+                }
+
+                // Convert date and time values to proper format
+                data.AppointmentDate = appointmentDate.toISOString().split('T')[0];
+                data.StartTime = data.StartTime + ':00';
+                data.EndTime = data.EndTime + ':00';
+
+                // Convert IDs to proper types
+                data.PatientId = parseInt(data.PatientId);
+                data.ServiceId = parseInt(data.ServiceId);
+
+                $.ajax({
+                    url: '@Url.Action("Create")',
+                    type: 'POST',
+                    data: data,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Chuyển hướng về trang Index với thông báo thành công
+                            window.location.href = '@Url.Action("Index")?message=' + encodeURIComponent('Đã đặt lịch thành công');
+                        } else {
+                            // Hiển thị thông báo lỗi từ server
+                            var errorMessage = Array.isArray(response.errors) ? response.errors.join('<br>') : 'Có lỗi xảy ra khi tạo lịch hẹn';
+                            showErrorMessage(errorMessage);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        var errorMessage = 'Có lỗi xảy ra khi tạo lịch hẹn. Vui lòng thử lại.';
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.errors && response.errors.length > 0) {
+                                errorMessage = response.errors.join('<br>');
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                        }
+                        showErrorMessage(errorMessage);
+                    }
+                });
+            });
+
+            // Hàm hiển thị thông báo lỗi
+            function showErrorMessage(message) {
+                var alert = $('<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '</div>');
+                
+                $('.card-body').prepend(alert);
+                
+                // Tự động đóng thông báo sau 5 giây
+                setTimeout(function() {
+                    alert.alert('close');
+                }, 5000);
+            }
+        });
+    </script>
+} 

@@ -1,0 +1,109 @@
+@model IEnumerable<MyMvcApp.ViewModels.UserManagementViewModel>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <partial name="_AdminSidebar" />
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">@ViewData["Title"]</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="@Url.Action("CreateUser", "Admin")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Tạo người dùng mới
+                    </a>
+                </div>
+            </div>
+
+            <!-- User List -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="userTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Created At</th>
+                                    <th>Is Active</th>
+                                    <th>Roles</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model)
+                                {
+                                    <tr>
+                                        <td>@user.FullName</td>
+                                        <td>@user.Email</td>
+                                        <td>@user.CreatedAt</td>
+                                        <td>@user.IsActive</td>
+                                        <td>@string.Join(", ", user.RoleNames)</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("EditUser", "Admin", new { id = user.Id })" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-sm @(user.IsActive ? "btn-warning" : "btn-success")"
+                                                        onclick="toggleUserStatus('@user.Id', @user.IsActive.ToString().ToLower())">
+                                                    <i class="fas @(user.IsActive ? "fa-lock" : "fa-unlock")"></i>
+                                                </button>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-danger"
+                                                        onclick="deleteUser('@user.Id')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#userTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json'
+                }
+            });
+        });
+
+        function toggleUserStatus(userId, currentStatus) {
+            if (confirm('Bạn có chắc chắn muốn ' + (currentStatus ? 'khóa' : 'mở khóa') + ' người dùng này?')) {
+                $.post('@Url.Action("ToggleUserStatus", "Admin")', { id: userId }, function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + response.message);
+                    }
+                });
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
+                $.post('@Url.Action("DeleteUser", "Admin")', { id: userId }, function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + response.message);
+                    }
+                });
+            }
+        }
+    </script>
+} 

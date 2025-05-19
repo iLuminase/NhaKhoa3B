@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <partial name="_AdminSidebar" />
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard</h1>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Tổng số bệnh nhân</h5>
+                            <h2 class="card-text">@ViewBag.TotalPatients</h2>
+                            <i class="fas fa-users fa-2x position-absolute top-50 end-0 me-3 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Lịch hẹn hôm nay</h5>
+                            <h2 class="card-text">@ViewBag.TodayAppointments</h2>
+                            <i class="fas fa-calendar-check fa-2x position-absolute top-50 end-0 me-3 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Tổng số dịch vụ</h5>
+                            <h2 class="card-text">@ViewBag.TotalServices</h2>
+                            <i class="fas fa-procedures fa-2x position-absolute top-50 end-0 me-3 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Tổng số người dùng</h5>
+                            <h2 class="card-text">@ViewBag.TotalUsers</h2>
+                            <i class="fas fa-user-md fa-2x position-absolute top-50 end-0 me-3 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Hoạt động gần đây</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Thời gian</th>
+                                            <th>Mô tả</th>
+                                            <th>Người thực hiện</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var activity in ViewBag.RecentActivities)
+                                        {
+                                            <tr>
+                                                <td>@activity.Time.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>@activity.Description</td>
+                                                <td>@activity.User</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add your JavaScript code here
+    </script>
+} 
