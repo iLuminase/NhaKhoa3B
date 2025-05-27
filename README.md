@@ -1,90 +1,350 @@
-# Dental Service Web Application
+# 🦷 Dental Service Web Application
 
-Ứng dụng web quản lý dịch vụ nha khoa được xây dựng bằng ASP.NET Core MVC.
+Ứng dụng web quản lý dịch vụ nha khoa được xây dựng bằng ASP.NET Core MVC với Entity Framework Core và SQL Server.
 
-## Yêu cầu hệ thống
+## 📋 Yêu cầu hệ thống
 
-- .NET 6.0 SDK hoặc cao hơn
-- SQL Server (Express hoặc Developer Edition)
-- SQL Server Management Studio (SSMS)
-- Visual Studio 2022 hoặc Visual Studio Code
+- **.NET 9.0 SDK** hoặc cao hơn
+- **SQL Server** (Express, Developer, hoặc Standard Edition)
+- **SQL Server Management Studio (SSMS)** (khuyến nghị)
+- **Visual Studio 2022** hoặc **Visual Studio Code**
+- **Git** để clone repository
 
-## Cài đặt
+## 🚀 Hướng dẫn cài đặt
 
-1. Cài đặt SQL Server:
-   - Tải SQL Server Express từ https://www.microsoft.com/en-us/sql-server/sql-server-downloads
-   - Cài đặt SQL Server với các tùy chọn mặc định
-   - Cài đặt SQL Server Management Studio (SSMS) từ https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms
+### Bước 1: Cài đặt môi trường
 
-2. Clone repository:
+#### 1.1. Cài đặt .NET 9.0 SDK
+```bash
+# Kiểm tra phiên bản .NET hiện tại
+dotnet --version
+
+# Tải .NET 9.0 SDK từ: https://dotnet.microsoft.com/download
+```
+
+#### 1.2. Cài đặt SQL Server
+```bash
+# Tải SQL Server Express (miễn phí):
+# https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+
+
+```
+
+#### 1.3. Cài đặt SQL Server Management Studio (SSMS)
+```bash
+# Tải SSMS từ:
+# https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms
+```
+
+### Bước 2: Clone và cấu hình dự án
+
+#### 2.1. Clone repository
 ```bash
 git clone [URL_REPOSITORY]
-cd DentalMvcApp
+cd Dental_ServiceWeb/DentalMvcApp/MyMvcApp
 ```
 
-3. Tạo cơ sở dữ liệu:
-   - Mở SQL Server Management Studio
-   - Kết nối đến SQL Server instance
-   - Mở file `Database/CreateSqlServerDatabase_Manual.sql` trong SSMS
-   - Thực thi script để tạo database và các bảng
-   - Mở file `Database/SeedSqlServerData_Manual.sql` trong SSMS
-   - Thực thi script để tạo dữ liệu mẫu
-
-4. Cấu hình ứng dụng:
-   - Mở file `appsettings.json`
-   - Cập nhật connection string (mặc định đã được cấu hình):
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=.;Database=DentalDB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
-     }
-   }
-   ```
-
-5. Chạy ứng dụng:
+#### 2.2. Restore packages
 ```bash
-dotnet run
+dotnet restore
 ```
 
-## Cấu trúc dự án
+### Bước 3: Cấu hình Database
 
-- `Controllers/`: Chứa các controller xử lý request
-- `Models/`: Chứa các model đại diện cho dữ liệu
-- `Views/`: Chứa các view template
-- `Services/`: Chứa các service xử lý business logic
-- `Data/`: Chứa các class liên quan đến database context
-- `Migrations/`: Chứa các migration để tạo và cập nhật database
-- `wwwroot/`: Chứa các file tĩnh (CSS, JavaScript, images)
+#### 3.1. Cấu hình Connection String
 
-## Tính năng chính
+Mở file `appsettings.json` và cập nhật connection string:
 
-- Quản lý thông tin bệnh nhân
-- Quản lý lịch hẹn
-- Quản lý dịch vụ nha khoa
-- Quản lý nhân viên
-- Báo cáo thống kê
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=DentalDB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+  }
+}
+```
 
-## Xử lý sự cố
 
-1. Lỗi kết nối database:
-   - Kiểm tra SQL Server đã được khởi động
-   - Kiểm tra connection string trong `appsettings.json`
-   - Đảm bảo database "DentalDB" đã được tạo
-   - Kiểm tra quyền truy cập của tài khoản Windows đến SQL Server
-   - Đảm bảo đã bật chế độ xác thực Windows trong SQL Server
 
-2. Lỗi khi thực thi SQL script:
-   - Kiểm tra file `CreateSqlServerDatabase_Manual.sql` có đúng cú pháp SQL Server
-   - Thử thực thi từng phần của script nếu cần
-   - Kiểm tra log lỗi trong SQL Server Management Studio
-   - Đảm bảo bạn đang sử dụng SQL Server, không phải MySQL
+#### 3.2. Tạo Database bằng Entity Framework Migrations
 
-3. Lỗi khi chạy ứng dụng:
-   - Kiểm tra .NET SDK đã được cài đặt đúng phiên bản
-   - Chạy `dotnet restore` để cập nhật các package
-   - Kiểm tra các lỗi trong console
-   - Đảm bảo đã cài đặt package Microsoft.EntityFrameworkCore.SqlServer
+**Phương pháp 1: Sử dụng Entity Framework Migrations (Khuyến nghị)**
 
-## Đóng góp
+```bash
+# Kiểm tra các migration hiện có
+dotnet ef migrations list
 
-Mọi đóng góp đều được hoan nghênh. Vui lòng tạo issue hoặc pull request để đóng góp.
+# Tạo database và áp dụng migrations
+dotnet ef database update
+
+# Nếu cần tạo migration mới
+dotnet ef migrations add "TenMigration"
+```
+
+**Phương pháp 2: Xóa và tạo lại database**
+
+```bash
+# Xóa database hiện tại (cẩn thận!)
+dotnet ef database drop
+
+# Tạo lại database từ migrations
+dotnet ef database update
+```
+
+### Bước 4: Chạy ứng dụng
+
+```bash
+# Chạy ứng dụng
+dotnet run
+
+# Hoặc chạy với watch mode (tự động reload khi có thay đổi)
+dotnet watch run
+```
+
+Ứng dụng sẽ chạy tại:
+- **HTTPS**: https://localhost:7115
+- **HTTP**: http://localhost:5170
+
+### Bước 5: Đăng nhập hệ thống
+
+**Tài khoản Admin mặc định:**
+- **Email**: `admin@dental.com`
+- **Password**: `Admin@123`
+
+## 🗄️ Quản lý Database
+
+### Cấu trúc Database
+
+Dự án sử dụng **Entity Framework Core** với **Code First Migrations**:
+
+```
+DentalDB/
+├── Users (AspNetUsers)          # Quản lý người dùng
+├── Roles (AspNetRoles)          # Phân quyền
+├── Patients                     # Thông tin bệnh nhân
+├── Appointments                 # Lịch hẹn
+├── Services                     # Dịch vụ nha khoa
+├── Payments                     # Thanh toán
+├── DentalRecords               # Hồ sơ nha khoa
+├── Activities                  # Nhật ký hoạt động
+└── PaymentTransactions         # Giao dịch thanh toán
+```
+
+### Đồng bộ Database
+
+#### Cập nhật Database Schema
+
+```bash
+# Tạo migration mới khi có thay đổi model
+dotnet ef migrations add "TenMigrationMoi"
+
+# Áp dụng migration vào database
+dotnet ef database update
+
+# Xem lịch sử migrations
+dotnet ef migrations list
+
+# Rollback đến migration cụ thể
+dotnet ef database update TenMigrationCu
+```
+
+#### Backup và Restore Database
+
+**Backup Database:**
+```sql
+-- Trong SSMS hoặc sqlcmd
+BACKUP DATABASE DentalDB
+TO DISK = 'C:\Backup\DentalDB.bak'
+WITH FORMAT, INIT;
+```
+
+**Restore Database:**
+```sql
+-- Restore từ backup
+RESTORE DATABASE DentalDB
+FROM DISK = 'C:\Backup\DentalDB.bak'
+WITH REPLACE;
+```
+
+#### Reset Database
+
+```bash
+# Xóa hoàn toàn database
+dotnet ef database drop --force
+
+# Tạo lại database từ đầu
+dotnet ef database update
+
+# Hoặc reset migrations (cẩn thận!)
+rm -rf Migrations/
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+## 📁 Cấu trúc dự án
+
+```
+MyMvcApp/
+├── Controllers/                 # Controllers xử lý request
+│   ├── AdminController.cs      # Quản lý admin
+│   ├── PatientController.cs    # Quản lý bệnh nhân
+│   ├── AppointmentController.cs # Quản lý lịch hẹn
+│   └── PaymentController.cs    # Xử lý thanh toán
+├── Models/                     # Data models
+│   ├── ApplicationUser.cs      # User model
+│   ├── Patient.cs             # Bệnh nhân
+│   ├── Appointment.cs         # Lịch hẹn
+│   └── Payment.cs             # Thanh toán
+├── Views/                      # Razor views
+│   ├── Admin/                 # Views cho admin
+│   ├── Patient/               # Views cho bệnh nhân
+│   └── Shared/                # Shared layouts
+├── Data/                       # Database context
+│   └── ApplicationDbContext.cs # EF Core context
+├── Migrations/                 # EF Core migrations
+├── Services/                   # Business logic services
+├── wwwroot/                    # Static files
+│   ├── css/                   # Stylesheets
+│   ├── js/                    # JavaScript
+│   └── images/                # Images
+└── appsettings.json           # Configuration
+```
+
+## 🎯 Tính năng chính
+
+- ✅ **Quản lý bệnh nhân**: Thêm, sửa, xóa thông tin bệnh nhân
+- ✅ **Quản lý lịch hẹn**: Đặt lịch, theo dõi lịch hẹn
+- ✅ **Quản lý dịch vụ**: Danh sách dịch vụ nha khoa
+- ✅ **Quản lý nhân viên**: Phân quyền và quản lý user
+- ✅ **Báo cáo thống kê**: Dashboard và báo cáo doanh thu
+- ✅ **Thanh toán**: Tích hợp MoMo Payment Gateway
+- ✅ **Bảo mật**: ASP.NET Core Identity với phân quyền
+
+## 🔧 Xử lý sự cố
+
+### 1. Lỗi kết nối Database
+
+```bash
+# Kiểm tra SQL Server đang chạy
+services.msc # Tìm SQL Server services
+
+# Test connection string
+dotnet ef dbcontext info
+
+# Kiểm tra database tồn tại
+sqlcmd -S . -E -Q "SELECT name FROM sys.databases WHERE name = 'DentalDB'"
+```
+
+**Các lỗi thường gặp:**
+- ❌ `Cannot open database "DentalDB"` → Chạy `dotnet ef database update`
+- ❌ `Login failed for user` → Kiểm tra connection string
+- ❌ `Server does not exist` → Kiểm tra SQL Server đã khởi động
+
+### 2. Lỗi Entity Framework
+
+```bash
+# Cài đặt EF Core tools
+dotnet tool install --global dotnet-ef
+
+# Kiểm tra EF tools
+dotnet ef --version
+
+# Rebuild project
+dotnet clean
+dotnet build
+```
+
+### 3. Lỗi Migration
+
+```bash
+# Xem chi tiết migration
+dotnet ef migrations script
+
+# Xóa migration cuối cùng
+dotnet ef migrations remove
+
+# Force update database
+dotnet ef database update --force
+```
+
+### 4. Lỗi Dependencies
+
+```bash
+# Restore packages
+dotnet restore
+
+# Clear cache
+dotnet nuget locals all --clear
+
+# Rebuild solution
+dotnet clean
+dotnet build
+```
+
+## 🚀 Deployment
+
+### Development Environment
+
+```bash
+# Chạy với Development settings
+dotnet run --environment Development
+
+# Với hot reload
+dotnet watch run
+```
+
+### Production Environment
+
+```bash
+# Build for production
+dotnet publish -c Release -o ./publish
+
+# Chạy production build
+cd publish
+dotnet MyMvcApp.dll
+```
+
+### Docker Deployment
+
+```dockerfile
+# Dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 80
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["MyMvcApp.csproj", "."]
+RUN dotnet restore
+COPY . .
+RUN dotnet publish -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "MyMvcApp.dll"]
+```
+
+```bash
+# Build và chạy Docker
+docker build -t dental-app .
+docker run -p 8080:80 dental-app
+```
+
+## 🤝 Đóng góp
+
+1. Fork repository
+2. Tạo feature branch: `git checkout -b feature/TenTinhNang`
+3. Commit changes: `git commit -m 'Thêm tính năng mới'`
+4. Push to branch: `git push origin feature/TenTinhNang`
+5. Tạo Pull Request
+
+## 📝 License
+
+Dự án này được phát hành dưới [MIT License](LICENSE).
+
+## 📞 Hỗ trợ
+
+Nếu gặp vấn đề, vui lòng:
+1. Kiểm tra [Issues](../../issues) hiện có
+2. Tạo [Issue mới](../../issues/new) với mô tả chi tiết
+3. Liên hệ team phát triển
