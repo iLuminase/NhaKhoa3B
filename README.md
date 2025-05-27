@@ -5,16 +5,16 @@
 ## Yêu cầu hệ thống
 
 - .NET 6.0 SDK hoặc cao hơn
-- MySQL Server (được cài đặt thông qua Laragon)
-- Laragon (để quản lý MySQL và phpMyAdmin)
+- SQL Server (Express hoặc Developer Edition)
+- SQL Server Management Studio (SSMS)
 - Visual Studio 2022 hoặc Visual Studio Code
 
 ## Cài đặt
 
-1. Cài đặt Laragon:
-   - Tải Laragon từ https://laragon.org/download/
-   - Cài đặt Laragon với các tùy chọn mặc định
-   - Khởi động Laragon và click "Start All" để khởi động MySQL
+1. Cài đặt SQL Server:
+   - Tải SQL Server Express từ https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+   - Cài đặt SQL Server với các tùy chọn mặc định
+   - Cài đặt SQL Server Management Studio (SSMS) từ https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms
 
 2. Clone repository:
 ```bash
@@ -23,26 +23,20 @@ cd DentalMvcApp
 ```
 
 3. Tạo cơ sở dữ liệu:
-   - Mở trình duyệt và truy cập http://localhost/phpmyadmin
-   - Đăng nhập với tài khoản mặc định:
-     - Username: root
-     - Password: (để trống)
-   - Click "New" để tạo database mới
-   - Đặt tên database là "dental_sys"
-   - Chọn collation là "utf8mb4_unicode_ci"
-   - Click "Create"
-   - Chọn database "dental_sys" vừa tạo
-   - Click tab "Import"
-   - Chọn file `Database/CreateDatabase.sql`
-   - Click "Go" để thực thi script
+   - Mở SQL Server Management Studio
+   - Kết nối đến SQL Server instance
+   - Mở file `Database/CreateSqlServerDatabase_Manual.sql` trong SSMS
+   - Thực thi script để tạo database và các bảng
+   - Mở file `Database/SeedSqlServerData_Manual.sql` trong SSMS
+   - Thực thi script để tạo dữ liệu mẫu
 
 4. Cấu hình ứng dụng:
    - Mở file `appsettings.json`
-   - Cập nhật connection string:
+   - Cập nhật connection string (mặc định đã được cấu hình):
    ```json
    {
      "ConnectionStrings": {
-       "DefaultConnection": "Server=localhost;Database=dental_sys;User=root;Password=;"
+       "DefaultConnection": "Server=.;Database=DentalDB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
      }
    }
    ```
@@ -73,19 +67,24 @@ dotnet run
 ## Xử lý sự cố
 
 1. Lỗi kết nối database:
-   - Kiểm tra MySQL đã được khởi động trong Laragon
+   - Kiểm tra SQL Server đã được khởi động
    - Kiểm tra connection string trong `appsettings.json`
-   - Đảm bảo database "dental_sys" đã được tạo
+   - Đảm bảo database "DentalDB" đã được tạo
+   - Kiểm tra quyền truy cập của tài khoản Windows đến SQL Server
+   - Đảm bảo đã bật chế độ xác thực Windows trong SQL Server
 
-2. Lỗi khi import SQL:
-   - Kiểm tra file `CreateDatabase.sql` có đúng cú pháp MySQL
-   - Thử import từng phần của script nếu cần
+2. Lỗi khi thực thi SQL script:
+   - Kiểm tra file `CreateSqlServerDatabase_Manual.sql` có đúng cú pháp SQL Server
+   - Thử thực thi từng phần của script nếu cần
+   - Kiểm tra log lỗi trong SQL Server Management Studio
+   - Đảm bảo bạn đang sử dụng SQL Server, không phải MySQL
 
 3. Lỗi khi chạy ứng dụng:
    - Kiểm tra .NET SDK đã được cài đặt đúng phiên bản
    - Chạy `dotnet restore` để cập nhật các package
    - Kiểm tra các lỗi trong console
+   - Đảm bảo đã cài đặt package Microsoft.EntityFrameworkCore.SqlServer
 
 ## Đóng góp
 
-Mọi đóng góp đều được hoan nghênh. Vui lòng tạo issue hoặc pull request để đóng góp. 
+Mọi đóng góp đều được hoan nghênh. Vui lòng tạo issue hoặc pull request để đóng góp.

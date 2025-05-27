@@ -68,6 +68,21 @@ namespace MyMvcApp.Services.Implementations
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<object>> GetRecentActivitiesAsync()
+        {
+            return await _context.Activities
+                .Include(a => a.User)
+                .OrderByDescending(a => a.Time)
+                .Take(10)
+                .Select(a => new
+                {
+                    Time = a.Time,
+                    Description = a.Description,
+                    User = a.User.FullName
+                })
+                .ToListAsync();
+        }
+
         public async Task<DashboardData> GetDashboardDataAsync()
         {
             var totalAppointments = await GetTotalAppointmentsAsync();
@@ -76,6 +91,7 @@ namespace MyMvcApp.Services.Implementations
             var totalRevenue = await GetTotalRevenueAsync();
             var recentAppointments = await GetRecentAppointmentsAsync();
             var upcomingAppointments = await GetUpcomingAppointmentsAsync();
+            var recentActivities = await GetRecentActivitiesAsync();
 
             return new DashboardData
             {
@@ -84,8 +100,11 @@ namespace MyMvcApp.Services.Implementations
                 TotalServices = totalServices,
                 TotalRevenue = totalRevenue,
                 RecentAppointments = recentAppointments,
-                UpcomingAppointments = upcomingAppointments
+                UpcomingAppointments = upcomingAppointments,
+                RecentActivities = recentActivities,
+                TodayAppointments = await _context.Appointments.CountAsync(a => a.AppointmentDate.Date == DateTime.Today),
+                TotalUsers = await _context.Users.CountAsync()
             };
         }
     }
-} 
+}

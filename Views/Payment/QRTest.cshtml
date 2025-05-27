@@ -1,0 +1,176 @@
+@{
+    ViewData["Title"] = "Test QR Code";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-qrcode"></i> Test QR Code Generation</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Input</h5>
+                                <div class="form-group mb-3">
+                                    <label for="qrText">Text to encode:</label>
+                                    <textarea id="qrText" class="form-control" rows="3">https://test-payment.momo.vn/gw_payment/transactionProcessor?partnerCode=MOMO&orderId=ORDER_123_20241201120000&amount=150000</textarea>
+                                </div>
+                                <button onclick="generateQR()" class="btn btn-primary">
+                                    <i class="fas fa-qrcode"></i> Generate QR Code
+                                </button>
+                                <button onclick="clearQR()" class="btn btn-secondary">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>QR Code Output</h5>
+                                <div id="qrcode-container" class="text-center p-3 border rounded">
+                                    <p class="text-muted">QR Code will appear here</p>
+                                </div>
+                                <div id="qr-info" class="mt-3"></div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5>Test Different QR Libraries</h5>
+                                <div class="btn-group" role="group">
+                                    <button onclick="testQRCode1()" class="btn btn-outline-primary">Test QRCode.js</button>
+                                    <button onclick="testQRCode2()" class="btn btn-outline-success">Test qrcode-generator</button>
+                                    <button onclick="testQRCode3()" class="btn btn-outline-warning">Test QR Server</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <div id="test-results" class="border rounded p-3">
+                                    <p class="text-muted">Test results will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+
+    <script>
+        function generateQR() {
+            const text = document.getElementById('qrText').value;
+            const container = document.getElementById('qrcode-container');
+            
+            if (!text.trim()) {
+                container.innerHTML = '<p class="text-danger">Please enter text to encode</p>';
+                return;
+            }
+
+            container.innerHTML = '<div id="qrcode"></div>';
+            
+            QRCode.toCanvas(document.getElementById('qrcode'), text, {
+                width: 256,
+                height: 256,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) {
+                    console.error('QR Code generation error:', error);
+                    container.innerHTML = '<p class="text-danger">Error generating QR Code: ' + error.message + '</p>';
+                } else {
+                    document.getElementById('qr-info').innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Success!</strong> QR Code generated successfully.
+                            <br><small>Text: ${text}</small>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function clearQR() {
+            document.getElementById('qrcode-container').innerHTML = '<p class="text-muted">QR Code will appear here</p>';
+            document.getElementById('qr-info').innerHTML = '';
+            document.getElementById('test-results').innerHTML = '<p class="text-muted">Test results will appear here</p>';
+        }
+
+        function testQRCode1() {
+            const testText = "Test QRCode.js library";
+            const results = document.getElementById('test-results');
+            
+            results.innerHTML = '<h6>Testing QRCode.js:</h6><div id="test1"></div>';
+            
+            QRCode.toCanvas(testText, { width: 150 }, function (error, canvas) {
+                if (error) {
+                    document.getElementById('test1').innerHTML = '<p class="text-danger">Error: ' + error.message + '</p>';
+                } else {
+                    document.getElementById('test1').appendChild(canvas);
+                    document.getElementById('test1').innerHTML += '<p class="text-success mt-2">✓ QRCode.js working!</p>';
+                }
+            });
+        }
+
+        function testQRCode2() {
+            const testText = "Test qrcode-generator library";
+            const results = document.getElementById('test-results');
+            
+            try {
+                const qr = qrcode(0, 'M');
+                qr.addData(testText);
+                qr.make();
+                
+                results.innerHTML = `
+                    <h6>Testing qrcode-generator:</h6>
+                    <div style="font-size: 2px; line-height: 2px;">${qr.createImgTag(4)}</div>
+                    <p class="text-success mt-2">✓ qrcode-generator working!</p>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h6>Testing qrcode-generator:</h6>
+                    <p class="text-danger">Error: ${error.message}</p>
+                `;
+            }
+        }
+
+        function testQRCode3() {
+            const testText = "Test QR Server API";
+            const results = document.getElementById('test-results');
+            
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(testText)}`;
+            
+            results.innerHTML = `
+                <h6>Testing QR Server API:</h6>
+                <img src="${qrUrl}" alt="QR Code" class="img-fluid" style="max-width: 150px;">
+                <p class="text-success mt-2">✓ QR Server API working!</p>
+            `;
+        }
+
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('QR Test page loaded');
+            console.log('QRCode library available:', typeof QRCode !== 'undefined');
+            console.log('qrcode-generator available:', typeof qrcode !== 'undefined');
+        });
+    </script>
+</body>
+</html>

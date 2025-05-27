@@ -16,11 +16,11 @@ builder.Services.AddRazorPages();
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(connectionString));
 
 // Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedAccount = false; // Changed to false for testing
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
@@ -63,6 +63,10 @@ builder.Services.AddScoped<IEmailSender<ApplicationUser>, CustomEmailSender>();
 // Register custom services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IMoMoService, MoMoService>();
+
+// Add HttpClient for MoMo API
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

@@ -18,11 +18,15 @@ namespace MyMvcApp.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Activity> Activities { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            
+
+            // Set default collation for the database to support UTF-8
+            builder.UseCollation("Latin1_General_100_CI_AS_SC_UTF8");
+
             // Rename tables
             builder.Entity<ApplicationUser>().ToTable("Users");
             builder.Entity<IdentityRole>().ToTable("Roles");
@@ -57,9 +61,33 @@ namespace MyMvcApp.Data
                 .HasForeignKey(d => d.DentistId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Fix multiple cascade paths
+            builder.Entity<Payment>()
+                .HasOne(p => p.Patient)
+                .WithMany(pt => pt.Payments) // Specify the collection navigation property on Patient
+                .HasForeignKey(p => p.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Payment>()
+                .HasOne(p => p.Service)
+                .WithMany()
+                .HasForeignKey(p => p.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Payment>()
+                .HasOne(p => p.Appointment)
+                .WithMany()
+                .HasForeignKey(p => p.AppointmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Configure DateOfBirth to use date type
             builder.Entity<ApplicationUser>().Property(u => u.DateOfBirth).HasColumnType("date");
             builder.Entity<Patient>().Property(p => p.DateOfBirth).HasColumnType("date");
+
+            // Configure decimal types
+            builder.Entity<DentalRecord>().Property(p => p.Cost).HasColumnType("decimal(18,2)");
+            builder.Entity<Payment>().Property(p => p.Amount).HasColumnType("decimal(18,2)");
+            builder.Entity<Service>().Property(p => p.Price).HasColumnType("decimal(18,2)");
 
             // Seed admin role
             builder.Entity<IdentityRole>().HasData(
@@ -98,4 +126,4 @@ namespace MyMvcApp.Data
             );
         }
     }
-} 
+}

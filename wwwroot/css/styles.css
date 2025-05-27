@@ -34,12 +34,12 @@ h2 {
 .navbar {
     background-color: var(--navbar-bg-color) !important; /* Ensure custom background applies */
     border: 10px solid var(--navbar-bg-color); /* Border color same as background */
-    border-radius: 0.375rem; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-    padding: 0.5rem 1rem; 
-    margin-bottom: 20px; 
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    margin-bottom: 20px;
     position: fixed; /* Change to fixed for sticky behavior */
-    top: 0; 
+    top: 0;
     width: 100%; /* Ensure it spans the full width */
     z-index: 1030; /* Ensure it stays above other elements */
 }
@@ -60,12 +60,12 @@ body {
 }
 
 .navbar-brand {
-    color: var(--primary-color); 
+    color: var(--primary-color);
 }
 #hero {
-    background-image: url('/images/background2.webp');  
+    background-image: url('/images/background2.webp');
     color: var(--text-color);
-    background-size: cover;  
+    background-size: cover;
     background-position: center center; /* Căn giữa ảnh nền */
     background-repeat: no-repeat; /* Không lặp lại ảnh nền */
     min-height: 70vh;
@@ -165,7 +165,7 @@ body {
         border: none;
         padding: 0;
     }
-    
+
     .navbar-toggler:focus {
         box-shadow: none;
     }
@@ -264,15 +264,126 @@ main {
     font-size: 20px;
 }
 
+/* ===== REPORT CARDS STYLES ===== */
+
+/* Report card styling */
+.report-card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.report-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    border-color: var(--primary-color);
+}
+
+.report-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem 1.25rem;
+}
+
+.report-card .card-body {
+    padding: 1.25rem;
+    background-color: #ffffff;
+}
+
+.report-card .service-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.report-card .card-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.report-card .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.report-card .btn-primary:hover {
+    background-color: var(--footer-link-hover-color);
+    border-color: var(--footer-link-hover-color);
+    transform: translateY(-1px);
+}
+
+.report-card .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+}
+
+/* Badge colors matching primary theme */
+.report-card .bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.report-card .bg-success {
+    background-color: #28a745 !important;
+}
+
+.report-card .bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.report-card .bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.report-card .bg-secondary {
+    background-color: #6c757d !important;
+}
+
 /* Responsive adjustments for detail_styles content */
 @media (max-width: 767.98px) {
     .hero-section { /* This might need to be namespaced if #hero is also used on detail pages */
         padding-top: 3rem;
         padding-bottom: 3rem;
     }
-    
+
     .btn-tab {
         padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Report cards responsive */
+    .report-card .card-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .report-card .card-body {
+        padding: 1rem;
+    }
+
+    .report-card .service-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .report-card .card-title {
+        font-size: 1rem;
+    }
+
+    .report-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .report-card .btn-primary {
+        padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
     }
 }

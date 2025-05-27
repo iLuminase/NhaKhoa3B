@@ -10,6 +10,7 @@ namespace MyMvcApp.Services.Interfaces
         Task<decimal> GetTotalRevenueAsync();
         Task<IEnumerable<object>> GetRecentAppointmentsAsync();
         Task<IEnumerable<object>> GetUpcomingAppointmentsAsync();
+        Task<IEnumerable<object>> GetRecentActivitiesAsync();
         Task<DashboardData> GetDashboardDataAsync();
     }
-} 
+}

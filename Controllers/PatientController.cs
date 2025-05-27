@@ -156,6 +156,29 @@ namespace MyMvcApp.Controllers
             return View(patient);
         }
 
+        // GET: Patient/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var patient = await _context.Patients
+                .Include(p => p.Appointments)
+                    .ThenInclude(a => a.Service)
+                .Include(p => p.Payments)
+                    .ThenInclude(p => p.Service)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            return View(patient);
+        }
+
         // GET: Patient/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -184,6 +207,24 @@ namespace MyMvcApp.Controllers
             {
                 try
                 {
+                    // Kiểm tra xem bệnh nhân có lịch hẹn hoặc thanh toán không
+                    var hasAppointments = await _context.Appointments.AnyAsync(a => a.PatientId == id);
+                    var hasPayments = await _context.Payments.AnyAsync(p => p.PatientId == id);
+
+                    if (hasAppointments || hasPayments)
+                    {
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new {
+                                success = false,
+                                errors = new[] { "Không thể xóa bệnh nhân này vì đã có lịch hẹn hoặc thanh toán liên quan." }
+                            });
+                        }
+
+                        TempData["ErrorMessage"] = "Không thể xóa bệnh nhân này vì đã có lịch hẹn hoặc thanh toán liên quan.";
+                        return RedirectToAction(nameof(Index));
+                    }
+
                     _context.Patients.Remove(patient);
                     await _context.SaveChangesAsync();
 
@@ -194,7 +235,7 @@ namespace MyMvcApp.Controllers
                         var activity = new Activity
                         {
                             Time = DateTime.Now,
-                            Description = $"Deleted patient: {patient.FullName}",
+                            Description = $"Đã xóa bệnh nhân: {patient.FullName}",
                             UserId = currentUser.Id,
                             User = currentUser
                         };
@@ -202,14 +243,46 @@ namespace MyMvcApp.Controllers
                         await _context.SaveChangesAsync();
                     }
 
-                    TempData["SuccessMessage"] = "Patient deleted successfully.";
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = true });
+                    }
+
+                    TempData["SuccessMessage"] = "Đã xóa bệnh nhân thành công.";
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error deleting patient");
-                    TempData["ErrorMessage"] = "An error occurred while deleting the patient.";
+                    _logger.LogError(ex, "Lỗi khi xóa bệnh nhân");
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new {
+                            success = false,
+                            errors = new[] { "Có lỗi xảy ra khi xóa bệnh nhân. Vui lòng thử lại." }
+                        });
+                    }
+
+                    TempData["ErrorMessage"] = "Có lỗi xảy ra khi xóa bệnh nhân. Vui lòng thử lại.";
                 }
             }
+            else
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new {
+                        success = false,
+                        errors = new[] { "Không tìm thấy bệnh nhân." }
+                    });
+                }
+
+                TempData["ErrorMessage"] = "Không tìm thấy bệnh nhân.";
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true });
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -218,4 +291,4 @@ namespace MyMvcApp.Controllers
             return _context.Patients.Any(e => e.Id == id);
         }
     }
-} 
+}

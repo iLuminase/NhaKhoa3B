@@ -1,0 +1,91 @@
+<!-- Demo Payment Section -->
+<div class="card mt-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+            <i class="fas fa-flask"></i> Demo Thanh Toán MoMo
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle"></i> Hướng dẫn test tính năng thanh toán:</h6>
+            <ol>
+                <li>Nhấn nút "Tạo dữ liệu test" để tạo lịch hẹn đã hoàn thành</li>
+                <li>Vào trang "Quản lý thanh toán" để xem danh sách lịch hẹn cần thanh toán</li>
+                <li>Chọn "Thanh toán" để test tính năng MoMo QR Code và thanh toán tiền mặt</li>
+                <li>Xuất hóa đơn sau khi thanh toán thành công</li>
+            </ol>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-database fa-2x text-primary mb-3"></i>
+                        <h6>Tạo dữ liệu test</h6>
+                        <p class="text-muted">Tạo 5 lịch hẹn đã hoàn thành để test thanh toán</p>
+                        <a href="@Url.Action("CreateCompletedAppointments", "TestData")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Tạo dữ liệu test
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-credit-card fa-2x text-success mb-3"></i>
+                        <h6>Quản lý thanh toán</h6>
+                        <p class="text-muted">Xem danh sách lịch hẹn cần thanh toán</p>
+                        <a href="@Url.Action("Index", "Payment")" class="btn btn-success">
+                            <i class="fas fa-money-bill-wave"></i> Quản lý thanh toán
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h6><i class="fas fa-mobile-alt"></i> Thông tin MoMo Demo:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><strong>Partner Code:</strong> MOMO</li>
+                                    <li><strong>Environment:</strong> Test/Sandbox</li>
+                                    <li><strong>QR Code:</strong> Tự động tạo</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><strong>Thanh toán:</strong> Demo mode</li>
+                                    <li><strong>Callback:</strong> Tự động xử lý</li>
+                                    <li><strong>Hóa đơn:</strong> PDF export</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-flask fa-2x text-warning mb-3"></i>
+                        <h6>MoMo Demo Playground</h6>
+                        <p class="text-muted">Test tính năng MoMo với giao diện demo</p>
+                        <a href="@Url.Action("MoMoDemo", "Payment")" class="btn btn-warning">
+                            <i class="fas fa-play"></i> Mở Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="@Url.Action("ClearTestData", "TestData")" class="btn btn-outline-danger btn-sm"
+               onclick="return confirm('Bạn có chắc muốn xóa tất cả dữ liệu test?')">
+                <i class="fas fa-trash"></i> Xóa dữ liệu test
+            </a>
+        </div>
+    </div>
+</div>

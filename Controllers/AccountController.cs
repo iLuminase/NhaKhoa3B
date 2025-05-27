@@ -49,7 +49,8 @@ namespace MyMvcApp.Controllers
                     Email = model.Email,
                     FullName = model.FullName,
                     DateOfBirth = model.DateOfBirth,
-                    Gender = model.Gender
+                    Gender = model.Gender,
+                    SecurityStamp = Guid.NewGuid().ToString()
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
@@ -112,16 +113,16 @@ namespace MyMvcApp.Controllers
         {
             // Clear the existing external cookie
             await _signInManager.SignOutAsync();
-            
+
             // Clear all cookies
             foreach (var cookie in Request.Cookies.Keys)
             {
                 Response.Cookies.Delete(cookie);
             }
-            
+
             // Clear session
             HttpContext.Session.Clear();
-            
+
             return RedirectToAction("Login");
         }
 
@@ -134,4 +135,4 @@ namespace MyMvcApp.Controllers
             return RedirectToAction("Index", "Home");
         }
     }
-} 
+}

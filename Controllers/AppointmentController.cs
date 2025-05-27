@@ -210,7 +210,7 @@ namespace MyMvcApp.Controllers
                 var activity = new Activity
                 {
                     Time = DateTime.Now,
-                    Description = $"Created new appointment for patient: {patient.FullName}",
+                    Description = $"Đã tạo lịch hẹn cho bệnh nhân: {patient.FullName}",
                     UserId = currentUser.Id,
                     User = currentUser
                 };
@@ -319,7 +319,7 @@ namespace MyMvcApp.Controllers
                     var activity = new Activity
                     {
                         Time = DateTime.Now,
-                        Description = $"Updated appointment for patient: {appointment.PatientName}",
+                        Description = $"Đã cập nhật lịch hẹn cho bệnh nhân: {appointment.PatientName}",
                         UserId = currentUser.Id,
                         User = currentUser
                     };
@@ -499,6 +499,16 @@ namespace MyMvcApp.Controllers
                 appointment.UpdatedAt = DateTime.Now;
                 appointment.CreatedByUserId = currentUser.Id;
                 appointment.CreatedBy = currentUser.FullName;
+
+                // Log activity with completion information
+                var activity = new Activity
+                {
+                    Time = DateTime.Now,
+                    Description = $"Đánh dấu hoàn thành lịch hẹn cho bệnh nhân: {appointment.PatientName}",
+                    UserId = currentUser.Id,
+                    User = currentUser
+                };
+                _context.Activities.Add(activity);
 
                 await _context.SaveChangesAsync();
                 return Json(new { success = true });

@@ -2,6 +2,11 @@
     ViewData["Title"] = "Báo cáo";
 }
 
+@section Styles {
+    <link href="~/css/styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+}
+
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
@@ -13,87 +18,112 @@
                 <h1 class="h2">Báo cáo</h1>
             </div>
 
+            <!-- Report Cards -->
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card report-card shadow-sm h-100">
+                        <div class="card-header d-flex align-items-center">
+                            <div class="service-icon bg-primary text-white rounded-circle me-3">
                                 <i class="fas fa-chart-line"></i>
-                                Báo cáo doanh thu
-                            </h5>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Báo cáo doanh thu</h5>
+                                <small class="text-muted">Thống kê tài chính</small>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted">
-                                Xem thống kê doanh thu theo thời gian
+                            <p class="text-muted mb-3">
+                                Xem chi tiết thống kê doanh thu theo thời gian, phân tích xu hướng và hiệu suất kinh doanh.
                             </p>
-                            <a asp-action="RevenueReport" class="btn btn-primary">
-                                <i class="fas fa-chart-bar"></i>
-                                Xem báo cáo doanh thu
-                            </a>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="RevenueReport" class="btn btn-primary">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    Xem báo cáo
+                                </a>
+                                <span class="badge bg-success">Mới cập nhật</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card report-card shadow-sm h-100">
+                        <div class="card-header d-flex align-items-center">
+                            <div class="service-icon bg-info text-white rounded-circle me-3">
                                 <i class="fas fa-procedures"></i>
-                                Báo cáo dịch vụ
-                            </h5>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Báo cáo dịch vụ</h5>
+                                <small class="text-muted">Phân tích dịch vụ</small>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted">
-                                Xem thống kê các dịch vụ được sử dụng
+                            <p class="text-muted mb-3">
+                                Thống kê các dịch vụ được sử dụng nhiều nhất, đánh giá hiệu quả và mức độ phổ biến.
                             </p>
-                            <a asp-action="ServiceReport" class="btn btn-primary">
-                                <i class="fas fa-pie-chart"></i>
-                                Xem báo cáo dịch vụ
-                            </a>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="ServiceReport" class="btn btn-primary">
+                                    <i class="fas fa-pie-chart me-2"></i>
+                                    Xem báo cáo
+                                </a>
+                                <span class="badge bg-info">Phổ biến</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card report-card shadow-sm h-100">
+                        <div class="card-header d-flex align-items-center">
+                            <div class="service-icon bg-warning text-white rounded-circle me-3">
                                 <i class="fas fa-users"></i>
-                                Báo cáo bệnh nhân
-                            </h5>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Báo cáo bệnh nhân</h5>
+                                <small class="text-muted">Quản lý khách hàng</small>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted">
-                                Xem thống kê về bệnh nhân và lịch sử khám
+                            <p class="text-muted mb-3">
+                                Phân tích thông tin bệnh nhân, lịch sử khám và xu hướng sử dụng dịch vụ.
                             </p>
-                            <a asp-action="PatientReport" class="btn btn-primary">
-                                <i class="fas fa-user"></i>
-                                Xem báo cáo bệnh nhân
-                            </a>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="PatientReport" class="btn btn-primary">
+                                    <i class="fas fa-user me-2"></i>
+                                    Xem báo cáo
+                                </a>
+                                <span class="badge bg-warning">Quan trọng</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card report-card shadow-sm h-100">
+                        <div class="card-header d-flex align-items-center">
+                            <div class="service-icon bg-secondary text-white rounded-circle me-3">
                                 <i class="fas fa-user-md"></i>
-                                Báo cáo nhân viên
-                            </h5>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Báo cáo nhân viên</h5>
+                                <small class="text-muted">Hiệu suất làm việc</small>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted">
-                                Xem thống kê hoạt động của nhân viên
+                            <p class="text-muted mb-3">
+                                Theo dõi hoạt động và hiệu suất làm việc của đội ngũ nhân viên trong phòng khám.
                             </p>
-                            <a asp-action="StaffReport" class="btn btn-primary">
-                                <i class="fas fa-chart-pie"></i>
-                                Xem báo cáo nhân viên
-                            </a>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="StaffReport" class="btn btn-primary">
+                                    <i class="fas fa-chart-pie me-2"></i>
+                                    Xem báo cáo
+                                </a>
+                                <span class="badge bg-secondary">Nội bộ</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-</div> 
+</div>

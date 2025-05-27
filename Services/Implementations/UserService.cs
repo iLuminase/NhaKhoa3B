@@ -78,7 +78,8 @@ namespace MyMvcApp.Services.Implementations
                 DateOfBirth = model.DateOfBirth.HasValue ? DateOnly.FromDateTime(model.DateOfBirth.Value) : default,
                 Gender = model.Gender,
                 CreatedAt = DateTime.UtcNow,
-                IsActive = true
+                IsActive = true,
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -106,6 +107,12 @@ namespace MyMvcApp.Services.Implementations
             user.DateOfBirth = model.DateOfBirth.HasValue ? DateOnly.FromDateTime(model.DateOfBirth.Value) : default;
             user.Gender = model.Gender;
             user.IsActive = model.IsActive;
+
+            // Ensure SecurityStamp is set if it's null
+            if (string.IsNullOrEmpty(user.SecurityStamp))
+            {
+                user.SecurityStamp = Guid.NewGuid().ToString();
+            }
 
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
@@ -145,6 +152,12 @@ namespace MyMvcApp.Services.Implementations
                 return ServiceResult.FailureResult(new[] { "Không tìm thấy người dùng" });
 
             user.IsActive = !user.IsActive;
+
+            // Ensure SecurityStamp is set if it's null
+            if (string.IsNullOrEmpty(user.SecurityStamp))
+            {
+                user.SecurityStamp = Guid.NewGuid().ToString();
+            }
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
                 return ServiceResult.SuccessResult();

@@ -35,22 +35,20 @@ namespace MyMvcApp.Controllers
             ViewBag.TotalServices = await _context.Services.CountAsync();
             ViewBag.TotalUsers = await _userManager.Users.CountAsync();
 
-            // Get recent activities (last 10 appointments)
-            var recentAppointments = await _context.Appointments
-                .Include(a => a.Patient)
-                .Include(a => a.Dentist)
-                .Include(a => a.CreatedByUser)
-                .OrderByDescending(a => a.CreatedAt)
+            // Get recent activities from Activities table
+            var recentActivities = await _context.Activities
+                .Include(a => a.User)
+                .OrderByDescending(a => a.Time)
                 .Take(10)
                 .Select(a => new
                 {
-                    Time = a.CreatedAt,
-                    Description = $"Lịch hẹn mới: {a.Patient.FullName} - {a.TreatmentType ?? "Không có loại điều trị"} ({a.StartTime:hh\\:mm})",
-                    User = a.CreatedByUser.FullName
+                    Time = a.Time,
+                    Description = a.Description,
+                    User = a.User.FullName
                 })
                 .ToListAsync();
 
-            ViewBag.RecentActivities = recentAppointments;
+            ViewBag.RecentActivities = recentActivities;
 
             return View();
         }
@@ -86,7 +84,8 @@ namespace MyMvcApp.Controllers
                 Email = "admin@dental.com",
                 FullName = "System Administrator",
                 DateOfBirth = new DateOnly(1990, 1, 1),
-                Gender = "Male"
+                Gender = "Male",
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
             var result = await _userManager.CreateAsync(adminUser, "Admin@123");
@@ -152,7 +151,8 @@ namespace MyMvcApp.Controllers
                     DateOfBirth = model.DateOfBirth,
                     Gender = model.Gender,
                     CreatedAt = DateTime.Now,
-                    IsActive = true
+                    IsActive = true,
+                    SecurityStamp = Guid.NewGuid().ToString()
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
@@ -213,6 +213,12 @@ namespace MyMvcApp.Controllers
                 user.Gender = model.Gender;
                 user.IsActive = model.IsActive;
 
+                // Ensure SecurityStamp is set if it's null
+                if (string.IsNullOrEmpty(user.SecurityStamp))
+                {
+                    user.SecurityStamp = Guid.NewGuid().ToString();
+                }
+
                 var result = await _userManager.UpdateAsync(user);
 
                 if (result.Succeeded)
@@ -251,6 +257,12 @@ namespace MyMvcApp.Controllers
             }
 
             user.IsActive = !user.IsActive;
+
+            // Ensure SecurityStamp is set if it's null
+            if (string.IsNullOrEmpty(user.SecurityStamp))
+            {
+                user.SecurityStamp = Guid.NewGuid().ToString();
+            }
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
@@ -347,7 +359,7 @@ namespace MyMvcApp.Controllers
             {
                 return Json(new { success = false, message = "Không tìm thấy bệnh nhân" });
             }
-            return Json(new { 
+            return Json(new {
                 success = true,
                 id = patient.Id,
                 fullName = patient.FullName,
@@ -381,7 +393,7 @@ namespace MyMvcApp.Controllers
             {
                 return Json(new { success = false, message = "Không tìm thấy dịch vụ" });
             }
-            return Json(new { 
+            return Json(new {
                 success = true,
                 id = service.Id,
                 name = service.Name,
@@ -432,4 +444,4 @@ namespace MyMvcApp.Controllers
             return Json(new { success = true });
         }
     }
-} 
+}

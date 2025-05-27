@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyMvcApp.Data;
 
@@ -11,9 +12,11 @@ using MyMvcApp.Data;
 namespace MyMvcApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250523155046_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -303,8 +306,8 @@ namespace MyMvcApp.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a76b991e-a358-4fb9-a5df-d6dbfaff7d56",
-                            CreatedAt = new DateTime(2025, 5, 24, 11, 15, 24, 305, DateTimeKind.Local).AddTicks(7580),
+                            ConcurrencyStamp = "30a25234-d565-48ba-85cd-ab1b8b6cda0b",
+                            CreatedAt = new DateTime(2025, 5, 23, 22, 50, 45, 945, DateTimeKind.Local).AddTicks(4778),
                             DateOfBirth = new DateOnly(1990, 1, 1),
                             Email = "admin@dental.com",
                             EmailConfirmed = true,
@@ -314,9 +317,9 @@ namespace MyMvcApp.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DENTAL.COM",
                             NormalizedUserName = "ADMIN@DENTAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAELqcx2VPxjMleLbDmOZDVK90ss3hjob3sQSBSYzzt0ZiZ7atWS0kR12c9fM3y379Nw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELtkySmLhPPqHNXJ4ONVt0CGkOAtPUeWkQNH4gTyP0gAi5U0l/ru8+lWhwXHbaFTgQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4779b1f4-0cda-430a-bc9a-3f737cd0362e",
+                            SecurityStamp = "65d75c4a-77de-4d69-916e-02481dafaec4",
                             TwoFactorEnabled = false,
                             UserName = "admin@dental.com"
                         });
@@ -512,6 +515,9 @@ namespace MyMvcApp.Migrations
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PatientId1")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
@@ -538,71 +544,11 @@ namespace MyMvcApp.Migrations
 
                     b.HasIndex("PatientId");
 
+                    b.HasIndex("PatientId1");
+
                     b.HasIndex("ServiceId");
 
                     b.ToTable("Payments");
-                });
-
-            modelBuilder.Entity("MyMvcApp.Models.PaymentTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MoMoTransactionId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OrderId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PayUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QrCodeUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RequestId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId");
-
-                    b.ToTable("PaymentTransactions");
                 });
 
             modelBuilder.Entity("MyMvcApp.Models.Service", b =>
@@ -781,10 +727,14 @@ namespace MyMvcApp.Migrations
                         .IsRequired();
 
                     b.HasOne("MyMvcApp.Models.Patient", "Patient")
-                        .WithMany("Payments")
+                        .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("MyMvcApp.Models.Patient", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("PatientId1");
 
                     b.HasOne("MyMvcApp.Models.Service", "Service")
                         .WithMany()
@@ -797,17 +747,6 @@ namespace MyMvcApp.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("Service");
-                });
-
-            modelBuilder.Entity("MyMvcApp.Models.PaymentTransaction", b =>
-                {
-                    b.HasOne("MyMvcApp.Models.Appointment", "Appointment")
-                        .WithMany()
-                        .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
                 });
 
             modelBuilder.Entity("MyMvcApp.Models.ApplicationUser", b =>
