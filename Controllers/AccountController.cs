@@ -126,6 +126,133 @@ namespace MyMvcApp.Controllers
             return RedirectToAction("Login");
         }
 
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var model = new ProfileViewModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email!,
+                UserName = user.UserName!,
+                PhoneNumber = user.PhoneNumber,
+                DateOfBirth = user.DateOfBirth,
+                Gender = user.Gender,
+                Roles = roles.ToList(),
+                CreatedAt = user.CreatedAt
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.PhoneNumber = model.PhoneNumber;
+            if (model.DateOfBirth.HasValue)
+            {
+                user.DateOfBirth = model.DateOfBirth.Value;
+            }
+            user.Gender = model.Gender ?? string.Empty;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Thông tin tài khoản đã được cập nhật thành công.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (result.Succeeded)
+            {
+                await _signInManager.RefreshSignInAsync(user);
+                TempData["SuccessMessage"] = "Mật khẩu đã được thay đổi thành công.";
+                return RedirectToAction(nameof(ChangePassword));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult Settings()
+        {
+            // In a real application, you would load user settings from database
+            var model = new SettingsViewModel();
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public IActionResult Settings(SettingsViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // In a real application, you would save settings to database
+            TempData["SuccessMessage"] = "Cài đặt đã được lưu thành công.";
+            return RedirectToAction(nameof(Settings));
+        }
+
         private IActionResult RedirectToLocal(string? returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))

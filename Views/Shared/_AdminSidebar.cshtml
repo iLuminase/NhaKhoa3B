@@ -3,7 +3,7 @@
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 
-<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+<nav class="col-md-3 col-lg-2 d-md-block sidebar">
     <div class="position-sticky pt-3">
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -13,8 +13,8 @@
                     Dashboard
                 </a>
             </li>
-            <li class="nav-item"></li>
-                <a class="nav-link @(currentAction == "Appointments" && currentController == "Admin" ? "active" : "")"
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Appointment" ? "active" : "")"
                    href="@Url.Action("Index", "Appointment")">
                     <i class="fas fa-calendar-check"></i>
                     Quản lý lịch hẹn

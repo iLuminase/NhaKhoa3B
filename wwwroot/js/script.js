@@ -18,25 +18,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Tab functionality
     const tabButtons = document.querySelectorAll('.btn-tab');
-    
+
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             // Remove active class from all buttons
             tabButtons.forEach(btn => {
                 btn.classList.remove('active');
             });
-            
+
             // Add active class to clicked button
             this.classList.add('active');
         });
     });
-    
+
     // Time slot selection
     const timeButtons = document.querySelectorAll('.btn-outline-secondary');
-    
+
     timeButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Toggle active class 
+            // Toggle active class
             timeButtons.forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -70,7 +70,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropdownList = dropdownElementList.map(function(dropdownElement) {
         return new bootstrap.Dropdown(dropdownElement);
     });
-    
+
+    // Force re-initialize dropdowns after page load to ensure they work
+    setTimeout(function() {
+        const navbarDropdown = document.getElementById('navbarDropdown');
+        if (navbarDropdown && !navbarDropdown.hasAttribute('data-bs-dropdown-initialized')) {
+            new bootstrap.Dropdown(navbarDropdown);
+            navbarDropdown.setAttribute('data-bs-dropdown-initialized', 'true');
+        }
+    }, 100);
+
 });
 
 // DataTable initialization

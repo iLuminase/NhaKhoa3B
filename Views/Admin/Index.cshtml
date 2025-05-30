@@ -15,24 +15,39 @@
 
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom animate-fade-in-up">
+                <h1 class="h2 gradient-text">
+                    <i class="fas fa-chart-line me-3"></i>Dashboard Quản Lý
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-2"></i>Xuất báo cáo
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Statistics Cards -->
-            <div class="row">
+            <div class="row stagger-animation">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card border-left-primary shadow h-100 py-2 hover-lift">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Tổng số bệnh nhân
+                                        <i class="fas fa-users me-2"></i>Tổng số bệnh nhân
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalPatients</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 statistics-number">@ViewBag.TotalPatients</div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                        <span class="text-success">12%</span> so với tháng trước
+                                    </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                    <div class="statistics-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -40,17 +55,23 @@
                 </div>
 
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card border-left-success shadow h-100 py-2 hover-lift">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Lịch hẹn hôm nay
+                                        <i class="fas fa-calendar-check me-2"></i>Lịch hẹn hôm nay
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TodayAppointments</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 statistics-number">@ViewBag.TodayAppointments</div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-clock text-info me-1"></i>
+                                        <span class="text-info">5 lịch</span> đang chờ xác nhận
+                                    </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                                    <div class="statistics-icon bg-success">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -58,17 +79,23 @@
                 </div>
 
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card border-left-info shadow h-100 py-2 hover-lift">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Tổng số dịch vụ
+                                        <i class="fas fa-tooth me-2"></i>Tổng số dịch vụ
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalServices</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 statistics-number">@ViewBag.TotalServices</div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-plus text-success me-1"></i>
+                                        <span class="text-success">3 dịch vụ</span> mới tuần này
+                                    </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-procedures fa-2x text-gray-300"></i>
+                                    <div class="statistics-icon bg-info">
+                                        <i class="fas fa-tooth"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -76,17 +103,23 @@
                 </div>
 
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card border-left-warning shadow h-100 py-2 hover-lift">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Tổng số người dùng
+                                        <i class="fas fa-user-md me-2"></i>Tổng số người dùng
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalUsers</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 statistics-number">@ViewBag.TotalUsers</div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-user-plus text-primary me-1"></i>
+                                        <span class="text-primary">2 người</span> đăng ký mới
+                                    </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                                    <div class="statistics-icon bg-warning">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -97,21 +130,35 @@
             <!-- Demo Payment Section -->
             @* <partial name="_DemoPayment" /> *@
 
-            <div class="row">
+            <!-- Recent Activities Section -->
+            <div class="row animate-fade-in-up">
                 <div class="col-md-12">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Hoạt động gần đây</h6>
+                    <div class="card shadow mb-4 hover-lift">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-history me-2"></i>Hoạt động gần đây
+                            </h6>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-filter me-1"></i>Lọc
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-day me-2"></i>Hôm nay</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-week me-2"></i>Tuần này</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-alt me-2"></i>Tháng này</a></li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="activityTable">
-                                    <thead>
+                                <table class="table table-striped table-hover modern-table" id="activityTable">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>Thời gian</th>
-                                            <th>Mô tả</th>
-                                            <th>Người thực hiện</th>
-                                            <th>Loại hoạt động</th>
+                                            <th><i class="fas fa-clock me-2"></i>Thời gian</th>
+                                            <th><i class="fas fa-info-circle me-2"></i>Mô tả</th>
+                                            <th><i class="fas fa-user me-2"></i>Người thực hiện</th>
+                                            <th><i class="fas fa-tag me-2"></i>Loại hoạt động</th>
+                                            <th><i class="fas fa-cog me-2"></i>Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -119,14 +166,45 @@
                                         {
                                             @foreach (var activity in ViewBag.RecentActivities)
                                             {
-                                                <tr>
-                                                    <td>@activity.Time.ToString("dd/MM/yyyy HH:mm")</td>
-                                                    <td>@activity.Description</td>
+                                                <tr class="table-row-hover">
                                                     <td>
-                                                        <span class="badge bg-info">@activity.User</span>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="activity-time-badge">
+                                                                @activity.Time.ToString("dd/MM")
+                                                            </div>
+                                                            <div class="ms-2">
+                                                                <div class="fw-bold">@activity.Time.ToString("HH:mm")</div>
+                                                                <small class="text-muted">@activity.Time.ToString("yyyy")</small>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-secondary">Hệ thống</span>
+                                                        <div class="activity-description">
+                                                            @activity.Description
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="user-avatar me-2">
+                                                                <i class="fas fa-user-circle"></i>
+                                                            </div>
+                                                            <span class="badge bg-gradient bg-info text-white">@activity.User</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-gradient bg-secondary">
+                                                            <i class="fas fa-cogs me-1"></i>Hệ thống
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" title="Xem chi tiết">
+                                                                <i class="fas fa-eye"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm" title="Xuất báo cáo">
+                                                                <i class="fas fa-download"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             }
@@ -134,7 +212,13 @@
                                         else
                                         {
                                             <tr>
-                                                <td colspan="4" class="text-center text-muted">Không có hoạt động nào gần đây</td>
+                                                <td colspan="5" class="text-center text-muted py-5">
+                                                    <div class="empty-state">
+                                                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                                        <h5 class="text-muted">Không có hoạt động nào gần đây</h5>
+                                                        <p class="text-muted">Các hoạt động mới sẽ được hiển thị tại đây</p>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -150,7 +234,6 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
