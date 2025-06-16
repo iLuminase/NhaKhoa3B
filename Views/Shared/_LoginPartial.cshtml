@@ -1,0 +1,69 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user-circle me-2"></i>
+                <span>@user.FullName</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li>
+                    <h6 class="dropdown-header">
+                        <i class="fas fa-user me-2"></i>@user.FullName
+                    </h6>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                @if (User.IsInRole("Admin"))
+                {
+                    <li>
+                        <a class="dropdown-item" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                }
+                <li>
+                    <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                        <i class="fas fa-id-card me-2"></i>Thông tin tài khoản
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                        <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="Account" asp-action="Settings">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Account" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Account" asp-action="Register">
+                <i class="fas fa-user-plus me-2"></i>Đăng ký
+            </a>
+        </li>
+    }
+</ul>

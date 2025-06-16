@@ -72,6 +72,12 @@ namespace MyMvcApp.Migrations
                             Id = "3",
                             Name = "Staff",
                             NormalizedName = "STAFF"
+                        },
+                        new
+                        {
+                            Id = "4",
+                            Name = "User",
+                            NormalizedName = "USER"
                         });
                 });
 
@@ -303,8 +309,8 @@ namespace MyMvcApp.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a76b991e-a358-4fb9-a5df-d6dbfaff7d56",
-                            CreatedAt = new DateTime(2025, 5, 24, 11, 15, 24, 305, DateTimeKind.Local).AddTicks(7580),
+                            ConcurrencyStamp = "245fe53a-7f94-45bb-a133-82f12de31bf2",
+                            CreatedAt = new DateTime(2025, 6, 6, 10, 19, 47, 889, DateTimeKind.Local).AddTicks(9744),
                             DateOfBirth = new DateOnly(1990, 1, 1),
                             Email = "admin@dental.com",
                             EmailConfirmed = true,
@@ -314,9 +320,9 @@ namespace MyMvcApp.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DENTAL.COM",
                             NormalizedUserName = "ADMIN@DENTAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAELqcx2VPxjMleLbDmOZDVK90ss3hjob3sQSBSYzzt0ZiZ7atWS0kR12c9fM3y379Nw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJC8adRI1s8FPbiYesNqGOv5jHaodr3Fp22qzKWeIQUJ6OACTtt6O+gDpF9svaJzfg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4779b1f4-0cda-430a-bc9a-3f737cd0362e",
+                            SecurityStamp = "dd876d6d-66e0-4a1b-abf8-2f247fd04c81",
                             TwoFactorEnabled = false,
                             UserName = "admin@dental.com"
                         });
@@ -641,12 +647,49 @@ namespace MyMvcApp.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("ServiceCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ServiceCategoryId");
+
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("MyMvcApp.Models.ServiceCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -810,6 +853,15 @@ namespace MyMvcApp.Migrations
                     b.Navigation("Appointment");
                 });
 
+            modelBuilder.Entity("MyMvcApp.Models.Service", b =>
+                {
+                    b.HasOne("MyMvcApp.Models.ServiceCategory", "ServiceCategory")
+                        .WithMany("Services")
+                        .HasForeignKey("ServiceCategoryId");
+
+                    b.Navigation("ServiceCategory");
+                });
+
             modelBuilder.Entity("MyMvcApp.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Roles");
@@ -822,6 +874,11 @@ namespace MyMvcApp.Migrations
                     b.Navigation("DentalRecords");
 
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("MyMvcApp.Models.ServiceCategory", b =>
+                {
+                    b.Navigation("Services");
                 });
 #pragma warning restore 612, 618
         }

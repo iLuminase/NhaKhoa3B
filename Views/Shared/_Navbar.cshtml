@@ -4,7 +4,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container">
-        <a class="navbar-brand" asp-controller="Admin" asp-action="Index">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
             <span class="brand-text">Nha Khoa 3B</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -31,6 +31,15 @@
                                 </h6>
                             </li>
                             <li><hr class="dropdown-divider"></li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a class="dropdown-item" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            }
                             <li>
                                 <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
                                     <i class="fas fa-id-card me-2"></i>Thông tin tài khoản

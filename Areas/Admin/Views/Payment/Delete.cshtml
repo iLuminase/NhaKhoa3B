@@ -1,0 +1,85 @@
+@model MyMvcApp.Models.Payment
+
+@{
+    ViewData["Title"] = "Xóa thanh toán";
+}
+
+
+    
+        <!-- Sidebar -->
+        
+
+        <!-- Main content -->
+        
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Xóa thanh toán</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                    </a>
+                </div>
+            </div>
+
+            <div class="alert alert-danger">
+                <h4 class="alert-heading">Cảnh báo!</h4>
+                <p>Bạn có chắc chắn muốn xóa thanh toán này? Hành động này không thể hoàn tác.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Thông tin thanh toán sẽ bị xóa</h5>
+                </div>
+                <div class="card-body">
+                    
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Mã thanh toán</dt>
+                                <dd class="col-sm-8">@Model.Id</dd>
+
+                                <dt class="col-sm-4">Bệnh nhân</dt>
+                                <dd class="col-sm-8">@Model.Patient?.FullName</dd>
+
+                                <dt class="col-sm-4">Dịch vụ</dt>
+                                <dd class="col-sm-8">@Model.Service?.Name</dd>
+
+                                <dt class="col-sm-4">Số tiền</dt>
+                                <dd class="col-sm-8">@Model.Amount.ToString("N0") VNĐ</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Phương thức</dt>
+                                <dd class="col-sm-8">@Model.PaymentMethod</dd>
+
+                                <dt class="col-sm-4">Trạng thái</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge @(Model.Status == "Completed" ? "bg-success" : 
+                                                      Model.Status == "Pending" ? "bg-warning" : 
+                                                      Model.Status == "Failed" ? "bg-danger" : "bg-info")">
+                                        @Model.Status
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-4">Ngày thanh toán</dt>
+                                <dd class="col-sm-8">@Model.PaymentDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                                <dt class="col-sm-4">Mã giao dịch</dt>
+                                <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.TransactionId) ? "Không có" : Model.TransactionId)</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xác nhận xóa
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        

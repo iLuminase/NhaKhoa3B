@@ -83,25 +83,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // DataTable initialization
-$(document).ready(function() {
-    // Initialize DataTable for patient management
-    if ($('#patientTable').length) {
-        $('#patientTable').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json'
-            }
-        });
-    }
-
-    // Initialize DataTable for user management
-    if ($('#userTable').length) {
-        $('#userTable').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json'
-            }
-        });
-    }
-});
+// Note: DataTables are initialized in their specific view files
+// to avoid conflicts and allow for custom configuration per page:
+// - patient-table: initialized in Patient/Index.cshtml
+// - userTable: initialized in UserManagement/Index.cshtml
+// - appointmentTable: initialized in Payment/Index.cshtml
+// - activityTable: initialized in Home/Index.cshtml
 
 // Patient Management Functions
 function savePatient() {

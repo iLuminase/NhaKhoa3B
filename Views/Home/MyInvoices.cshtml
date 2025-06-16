@@ -1,0 +1,270 @@
+@model List<MyMvcApp.Models.Payment>
+@{
+    ViewData["Title"] = "Hóa đơn của tôi";
+    Layout = "_UserLayout";
+}
+
+@section Styles {
+    <style>
+        .invoices-container {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .invoices-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .invoice-item {
+            border-bottom: 1px solid #f8f9fa;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .invoice-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .invoice-item:last-child {
+            border-bottom: none;
+        }
+        
+        .invoice-amount {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #28a745;
+        }
+        
+        .invoice-date {
+            font-size: 1rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .invoice-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-overdue {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .payment-method {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .total-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .summary-item {
+            margin: 0 20px;
+        }
+    </style>
+}
+
+<div class="invoices-container">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-file-invoice me-3"></i>Hóa đơn của tôi</h1>
+            <p class="mb-0">Theo dõi các hóa đơn và thanh toán của bạn</p>
+        </div>
+        
+        @if (Model != null && Model.Count > 0)
+        {
+            <!-- Summary -->
+            <div class="invoices-card mb-4">
+                <div class="total-summary">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <h4>@Model.Count</h4>
+                                <small>Tổng hóa đơn</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <h4>@Model.Sum(p => p.Amount).ToString("N0") VNĐ</h4>
+                                <small>Tổng số tiền</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-item">
+                                <h4>@Model.Count(p => p.Status == "Paid")</h4>
+                                <small>Đã thanh toán</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <div class="invoices-card">
+            @if (Model != null && Model.Count > 0)
+            {
+                @foreach (var payment in Model)
+                {
+                    <div class="invoice-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="invoice-amount">
+                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                    @payment.Amount.ToString("N0") VNĐ
+                                </div>
+                                <div class="invoice-details">
+                                    Mã HĐ: #@payment.Id
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="invoice-date">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    @payment.PaymentDate.ToString("dd/MM/yyyy")
+                                </div>
+                                <div class="invoice-details">
+                                    <i class="fas fa-tooth me-1"></i>
+                                    @(payment.Appointment?.Service?.Name ?? "Dịch vụ không xác định")
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="payment-method">
+                                    <i class="fas fa-credit-card me-1"></i>
+                                    @(payment.PaymentMethod ?? "Tiền mặt")
+                                </div>
+                                @if (!string.IsNullOrEmpty(payment.Notes))
+                                {
+                                    <div class="invoice-details mt-1">
+                                        <i class="fas fa-sticky-note me-1"></i>
+                                        @payment.Notes
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <span class="status-badge @GetStatusClass(payment.Status)">
+                                    @GetStatusText(payment.Status)
+                                </span>
+                                @if (payment.Status != "Paid")
+                                {
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-credit-card me-1"></i>Thanh toán
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-file-invoice fa-4x mb-3"></i>
+                    <h4>Chưa có hóa đơn nào</h4>
+                    <p>Bạn chưa có hóa đơn nào trong hệ thống.</p>
+                </div>
+            }
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="@Url.Action("Index", "Home")" class="back-btn">
+                <i class="fas fa-arrow-left me-2"></i>Về trang chủ
+            </a>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "paid" => "status-paid",
+            "pending" => "status-pending",
+            "overdue" => "status-overdue",
+            _ => "status-pending"
+        };
+    }
+    
+    private string GetStatusText(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "paid" => "Đã thanh toán",
+            "pending" => "Chờ thanh toán",
+            "overdue" => "Quá hạn",
+            _ => "Chờ thanh toán"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Add fade-in animation
+            $('.invoice-item').each(function(index) {
+                $(this).delay(index * 100).fadeIn(500);
+            });
+        });
+    </script>
+}

@@ -35,11 +35,35 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Cookie hết hạn sau 30 phút
+    options.LogoutPath = "/Account/Logout";
+
+    // Cấu hình thời gian cookie
+    options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie hết hạn sau 7 ngày (cho Remember Me)
     options.SlidingExpiration = true; // Đặt lại thời gian hết hạn khi hoạt động
+
+    // Cấu hình cookie security
     options.Cookie.HttpOnly = true; // Ngăn chặn truy cập cookie bằng JavaScript
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Chỉ gửi cookie qua HTTPS
-    options.Cookie.SameSite = SameSiteMode.Strict; // Prevent CSRF
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Hỗ trợ HTTP trong development
+    options.Cookie.SameSite = SameSiteMode.Lax; // Tương thích tốt hơn
+    options.Cookie.IsEssential = true; // Cookie cần thiết cho ứng dụng
+    options.Cookie.Name = "DentalAuth"; // Tên cookie tùy chỉnh
+
+    // Cấu hình persistent cookie cho Remember Me
+    options.Events.OnSigningIn = context =>
+    {
+        // Nếu Remember Me được chọn, cookie sẽ persistent
+        if (context.Properties.IsPersistent)
+        {
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30); // 30 ngày cho Remember Me
+        }
+        else
+        {
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2); // 2 giờ cho session thường
+        }
+        return Task.CompletedTask;
+    };
+
+    options.ReturnUrlParameter = "returnUrl";
 });
 
 // Add memory cache
@@ -48,9 +72,12 @@ builder.Services.AddMemoryCache();
 // Add session
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.IdleTimeout = TimeSpan.FromHours(2); // Tăng thời gian session
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.Name = "DentalSession"; // Tên session cookie tùy chỉnh
 });
 
 // Add HttpContextAccessor
@@ -87,8 +114,40 @@ app.UseMiddleware<SessionTimeoutMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Custom middleware để kiểm tra quyền truy cập admin
+app.UseAdminAccess();
+
+// Configure Areas routing
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+// Route cho Admin area
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "Admin/{action=Index}/{id?}",
+    defaults: new { area = "Admin", controller = "Home" });
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Landing}/{id?}");
+
+// Route cho trang đăng nhập
+app.MapControllerRoute(
+    name: "login",
+    pattern: "login",
+    defaults: new { controller = "Account", action = "Login" });
+
+// Route cho trang đăng ký
+app.MapControllerRoute(
+    name: "register",
+    pattern: "register",
+    defaults: new { controller = "Account", action = "UserRegister" });
+
+// Route để handle logout từ Admin area (redirect về Account controller)
+app.MapControllerRoute(
+    name: "admin-logout-redirect",
+    pattern: "Admin/Account/Logout",
+    defaults: new { controller = "Account", action = "LogoutFromAdmin" });
 
 app.Run();

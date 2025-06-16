@@ -1,0 +1,301 @@
+@{
+    ViewData["Title"] = "Tối ưu hóa hiệu suất";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Nha Khoa 3B</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 900px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #4A9F9F 0%, #2E7D7D 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .performance-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4A9F9F;
+        }
+
+        .performance-item.improved {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .performance-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #4A9F9F 0%, #2E7D7D 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: linear-gradient(135deg, #2E7D7D 0%, #1a5a5a 100%);
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+        .metric {
+            display: inline-block;
+            background: rgba(74, 159, 159, 0.1);
+            color: #2E7D7D;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2 class="mb-0">
+                    <i class="fas fa-rocket me-2"></i>
+                    Tối ưu hóa hiệu suất trang Login/Register
+                </h2>
+                <p class="mb-0 mt-2 opacity-75">Các cải tiến đã được thực hiện để giảm lag và cải thiện trải nghiệm người dùng</p>
+            </div>
+            <div class="card-body p-4">
+                
+                <!-- Background Animation Optimization -->
+                <div class="performance-item improved">
+                    <h5 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Tối ưu hóa Background Animation
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-danger">❌ Trước đây:</h6>
+                            <ul class="small">
+                                <li>Kích thước: <span class="metric">200% x 200%</span></li>
+                                <li>Background size: <span class="metric">50px x 50px</span></li>
+                                <li>Animation: <span class="metric">20s + rotation</span></li>
+                                <li>Opacity: <span class="metric">0.1</span></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">✅ Sau khi tối ưu:</h6>
+                            <ul class="small">
+                                <li>Kích thước: <span class="metric">100% x 100%</span></li>
+                                <li>Background size: <span class="metric">30px x 30px</span></li>
+                                <li>Animation: <span class="metric">30s, chỉ translateY</span></li>
+                                <li>Opacity: <span class="metric">0.05</span></li>
+                                <li>Added: <span class="metric">will-change: transform</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backdrop Filter Removal -->
+                <div class="performance-item improved">
+                    <h5 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Loại bỏ Backdrop Filter
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-danger">❌ Trước đây:</h6>
+                            <ul class="small">
+                                <li><code>backdrop-filter: blur(20px)</code></li>
+                                <li>Background opacity: <span class="metric">0.95</span></li>
+                                <li>Tốn nhiều GPU resources</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">✅ Sau khi tối ưu:</h6>
+                            <ul class="small">
+                                <li>Loại bỏ backdrop-filter</li>
+                                <li>Background opacity: <span class="metric">0.98</span></li>
+                                <li>Giảm đáng kể GPU usage</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CSS Transitions Optimization -->
+                <div class="performance-item improved">
+                    <h5 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Tối ưu hóa CSS Transitions
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-danger">❌ Trước đây:</h6>
+                            <ul class="small">
+                                <li><code>transition: all 0.3s ease</code></li>
+                                <li>Transform: <span class="metric">translateY(-2px)</span></li>
+                                <li>Không có will-change</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">✅ Sau khi tối ưu:</h6>
+                            <ul class="small">
+                                <li>Specific transitions: <code>border-color, box-shadow</code></li>
+                                <li>Transform: <span class="metric">translateY(-1px)</span></li>
+                                <li>Added: <span class="metric">will-change</span> properties</li>
+                                <li>Duration: <span class="metric">0.2s</span> (giảm từ 0.3s)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JavaScript Animation Optimization -->
+                <div class="performance-item improved">
+                    <h5 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Tối ưu hóa JavaScript Animation
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-danger">❌ Trước đây:</h6>
+                            <ul class="small">
+                                <li>Transform: <span class="metric">translateY(20px)</span></li>
+                                <li>Delay: <span class="metric">100ms per element</span></li>
+                                <li>Duration: <span class="metric">0.5s</span></li>
+                                <li>Transition: <span class="metric">all</span></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">✅ Sau khi tối ưu:</h6>
+                            <ul class="small">
+                                <li>Transform: <span class="metric">translateY(10px)</span></li>
+                                <li>Delay: <span class="metric">50ms per element</span></li>
+                                <li>Duration: <span class="metric">0.3s</span></li>
+                                <li>Specific: <span class="metric">opacity, transform</span></li>
+                                <li>Added: <span class="metric">requestAnimationFrame</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="performance-item">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Kết quả cải thiện dự kiến
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="metric" style="background: #d4edda; color: #155724; font-size: 1.2rem;">
+                                <i class="fas fa-tachometer-alt me-1"></i>
+                                ~40% faster
+                            </div>
+                            <small class="d-block mt-1">Page load time</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="metric" style="background: #d1ecf1; color: #0c5460; font-size: 1.2rem;">
+                                <i class="fas fa-memory me-1"></i>
+                                ~30% less
+                            </div>
+                            <small class="d-block mt-1">GPU usage</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="metric" style="background: #fff3cd; color: #856404; font-size: 1.2rem;">
+                                <i class="fas fa-mobile-alt me-1"></i>
+                                Better
+                            </div>
+                            <small class="d-block mt-1">Mobile performance</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Best Practices Applied -->
+                <div class="performance-item">
+                    <h5 class="text-info mb-3">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Best Practices đã áp dụng
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="small">
+                                <li><i class="fas fa-check text-success me-2"></i>Sử dụng <code>will-change</code> cho animated elements</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Giảm complexity của animations</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Specific CSS transitions thay vì <code>all</code></li>
+                                <li><i class="fas fa-check text-success me-2"></i>Sử dụng <code>requestAnimationFrame</code></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="small">
+                                <li><i class="fas fa-check text-success me-2"></i>Loại bỏ expensive CSS filters</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Giảm animation duration và delay</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Optimize background patterns</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Reduce transform distances</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <a href="@Url.Action("Login", "Account")" class="btn-back me-3">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Test trang Login
+                    </a>
+                    <a href="@Url.Action("UserRegister", "Account")" class="btn-back me-3">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Test trang Register
+                    </a>
+                    <a href="@Url.Action("LoginDemo", "Account")" class="btn-back">
+                        <i class="fas fa-home me-2"></i>
+                        Về trang Demo
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div class="text-center mt-4 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Các tối ưu hóa này giúp giảm lag và cải thiện trải nghiệm người dùng, đặc biệt trên các thiết bị có cấu hình thấp.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

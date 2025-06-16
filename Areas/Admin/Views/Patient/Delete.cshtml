@@ -1,0 +1,62 @@
+@model MyMvcApp.Models.Patient
+
+@{
+    ViewData["Title"] = "Xóa bệnh nhân";
+}
+
+
+    
+        <!-- Sidebar -->
+        
+
+        <!-- Main content -->
+        
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Xóa bệnh nhân</h1>
+            </div>
+
+            <div class="alert alert-danger">
+                <h4>Bạn có chắc chắn muốn xóa bệnh nhân này?</h4>
+                <p>Hành động này không thể hoàn tác.</p>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Thông tin bệnh nhân</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Họ tên</dt>
+                        <dd class="col-sm-9">@Model.FullName</dd>
+
+                        <dt class="col-sm-3">Email</dt>
+                        <dd class="col-sm-9">@Model.Email</dd>
+
+                        <dt class="col-sm-3">Số điện thoại</dt>
+                        <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+                        <dt class="col-sm-3">Ngày sinh</dt>
+                        <dd class="col-sm-9">@Model.DateOfBirth.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-3">Giới tính</dt>
+                        <dd class="col-sm-9">@Model.Gender</dd>
+
+                        <dt class="col-sm-3">Địa chỉ</dt>
+                        <dd class="col-sm-9">@Model.Address</dd>
+
+                        <dt class="col-sm-3">Ngày tạo</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Xác nhận xóa
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </form>
+        

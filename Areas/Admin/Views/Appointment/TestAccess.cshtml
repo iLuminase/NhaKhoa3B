@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Test Access";
+}
+
+<div class="container">
+    <h2>Test Access Information</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <h5>User Information</h5>
+            <p><strong>Is Authenticated:</strong> @User.Identity.IsAuthenticated</p>
+            <p><strong>User Name:</strong> @(User.Identity.Name ?? "Not logged in")</p>
+            
+            <h5>User Roles</h5>
+            @if (User.Identity.IsAuthenticated)
+            {
+                var roles = User.Claims.Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role").Select(c => c.Value);
+                if (roles.Any())
+                {
+                    <ul>
+                        @foreach (var role in roles)
+                        {
+                            <li>@role</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>No roles assigned</p>
+                }
+            }
+            else
+            {
+                <p>User not authenticated</p>
+            }
+            
+            <h5>ViewBag Data</h5>
+            <p><strong>Patients Count:</strong> @(ViewBag.Patients?.Count ?? 0)</p>
+            <p><strong>Services Count:</strong> @(ViewBag.Services?.Count ?? 0)</p>
+            <p><strong>Dentists Count:</strong> @(ViewBag.Dentists?.Count ?? 0)</p>
+            
+            @if (ViewBag.Patients != null && ViewBag.Patients.Count > 0)
+            {
+                <h6>Sample Patients:</h6>
+                <ul>
+                    @foreach (var patient in ViewBag.Patients.Take(3))
+                    {
+                        <li>@patient.Text (ID: @patient.Value)</li>
+                    }
+                </ul>
+            }
+            
+            @if (ViewBag.Services != null && ViewBag.Services.Count > 0)
+            {
+                <h6>Sample Services:</h6>
+                <ul>
+                    @foreach (var service in ViewBag.Services.Take(3))
+                    {
+                        <li>@service.Text (ID: @service.Value)</li>
+                    }
+                </ul>
+            }
+            
+            @if (ViewBag.Dentists != null && ViewBag.Dentists.Count > 0)
+            {
+                <h6>Sample Dentists:</h6>
+                <ul>
+                    @foreach (var dentist in ViewBag.Dentists.Take(3))
+                    {
+                        <li>@dentist.Text (ID: @dentist.Value)</li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="@Url.Action("Calendar")" class="btn btn-primary">Back to Calendar</a>
+    </div>
+</div>

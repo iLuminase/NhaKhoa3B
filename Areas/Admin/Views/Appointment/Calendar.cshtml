@@ -1,0 +1,815 @@
+@model IEnumerable<MyMvcApp.Models.Appointment>
+@{
+    ViewData["Title"] = "Lịch hẹn";
+}
+
+@section Styles {
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <style>
+        /* Thêm màu nền xám nhạt cho toàn bộ trang */
+        .navbar-nav flex-grow-1 {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        /* Thêm màu nền trắng cho card chứa calendar */
+        .card {
+            background-color: #ffffff;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .fc-event {
+            cursor: pointer;
+            border: none !important;
+            padding: 2px 4px;
+        }
+        .fc-event.scheduled {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .fc-event.completed {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        .fc-event.cancelled {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .fc-event-title {
+            font-weight: bold;
+            color: white;
+        }
+        .fc-event-time {
+            font-size: 0.9em;
+            color: white;
+        }
+        .fc-toolbar-title {
+            font-size: 1.5em !important;
+        }
+        .fc-button-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+        }
+        .fc-button-primary:hover {
+            background-color: #0056b3 !important;
+            border-color: #0056b3 !important;
+        }
+        .fc-button-primary:disabled {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+        .fc-daygrid-day-number {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .fc-timegrid-slot {
+            height: 2.5em !important;
+        }
+        .fc-timegrid-slot-label {
+            font-size: 0.9em;
+        }
+        .fc-event-title-container {
+            padding: 2px 4px;
+        }
+        .fc-event-main {
+            padding: 2px 4px;
+        }
+        .fc-event-main-frame {
+            padding: 2px 4px;
+        }
+        .fc-event-time {
+            padding: 2px 4px;
+        }
+        .fc-event-title {
+            padding: 2px 4px;
+        }
+        /* Thêm style cho các sự kiện */
+        .fc-daygrid-event {
+            margin: 1px 0;
+            border-radius: 3px;
+        }
+        .fc-daygrid-event-dot {
+            border-width: 4px;
+        }
+        .fc-daygrid-day-events {
+            padding: 2px;
+        }
+        /* Style cho timegrid */
+        .fc-timegrid-axis {
+            padding: 0 4px;
+        }
+        .fc-timegrid-slot {
+            border-bottom: 1px solid #ddd;
+        }
+        .fc-timegrid-slot-label {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .fc-timegrid-slot-minor {
+            border-top: 0;
+        }
+        .fc-timegrid-slot-minor .fc-timegrid-slot-label {
+            display: none;
+        }
+        .fc-timegrid-col-bg {
+            background: #fff;
+        }
+        .fc-timegrid-col-events {
+            margin: 0 2px;
+        }
+        .fc-timegrid-event {
+            margin: 1px 0;
+            border-radius: 3px;
+        }
+
+        /* Style cho thông báo */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 400px;
+        }
+        .notification .alert {
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .notification .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .notification .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Simplified modal styles */
+        .modal-dialog {
+            max-width: 500px;
+        }
+
+        /* Ensure form elements are properly styled */
+        .modal .form-control,
+        .modal .form-select {
+            border: 1px solid #ced4da;
+            background-color: white;
+        }
+
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+}
+
+
+    
+        <!-- Sidebar -->
+        
+
+        <!-- Main content -->
+        
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Lịch hẹn</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-success me-2" onclick="testModal()">
+                        <i class="fas fa-test"></i> Test Modal
+                    </button>
+                    <a href="@Url.Action("Create")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Tạo lịch hẹn mới
+                    </a>
+                </div>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        
+
+<!-- Appointment Details Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết lịch hẹn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>Bệnh nhân:</strong>
+                    <span id="modalPatientName"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Dịch vụ:</strong>
+                    <span id="modalServiceName"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Nha sĩ:</strong>
+                    <span id="modalDentistName"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Thời gian:</strong>
+                    <span id="modalTime"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Trạng thái:</strong>
+                    <span id="modalStatus"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Ghi chú:</strong>
+                    <p id="modalNotes" class="mb-0"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto">
+                    <button type="button" class="btn btn-success" id="markCompletedBtn">
+                        <i class="fas fa-check"></i> Đánh dấu hoàn thành
+                    </button>
+                </div>
+                <a href="#" class="btn btn-primary" id="modalEditBtn">
+                    <i class="fas fa-edit"></i> Chỉnh sửa
+                </a>
+                <button type="button" class="btn btn-danger" id="deleteAppointmentBtn">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Appointment Modal -->
+<div class="modal fade" id="createAppointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo lịch hẹn mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createAppointmentForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">Bệnh nhân</label>
+                        <select class="form-select" name="PatientId" required>
+                            <option value="">-- Chọn bệnh nhân --</option>
+                            @if (ViewBag.Patients != null)
+                            {
+                                @foreach (var patient in ViewBag.Patients)
+                                {
+                                    <option value="@patient.Value">@patient.Text</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="" disabled>Không có dữ liệu bệnh nhân</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dịch vụ</label>
+                        <select class="form-select" name="ServiceId" required>
+                            <option value="">-- Chọn dịch vụ --</option>
+                            @if (ViewBag.Services != null)
+                            {
+                                @foreach (var service in ViewBag.Services)
+                                {
+                                    <option value="@service.Value">@service.Text</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="" disabled>Không có dữ liệu dịch vụ</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nha sĩ</label>
+                        <select class="form-select" name="DentistId" required>
+                            <option value="">-- Chọn nha sĩ --</option>
+                            @if (ViewBag.Dentists != null)
+                            {
+                                @foreach (var dentist in ViewBag.Dentists)
+                                {
+                                    <option value="@dentist.Value">@dentist.Text</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="" disabled>Không có dữ liệu nha sĩ</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày hẹn</label>
+                        <input type="date" class="form-control" name="AppointmentDate" required readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giờ bắt đầu</label>
+                        <input type="time" class="form-control" name="StartTime" required readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giờ kết thúc</label>
+                        <input type="time" class="form-control" name="EndTime" required readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" name="Notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveAppointmentBtn">
+                    <i class="fas fa-save"></i> Lưu
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancelAppointmentBtn">Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+    <script>
+        // Simple initialization without conflicts
+        console.log('📅 Calendar page loaded');
+    </script>
+    <script>
+        // Hàm tạo màu ngẫu nhiên
+        function getRandomColor() {
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
+                '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71',
+                '#F1C40F', '#1ABC9C', '#E74C3C', '#34495E', '#16A085'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Hàm tạo màu từ ID
+        function getColorFromId(id) {
+            const colors = [
+                '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
+                '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71',
+                '#F1C40F', '#1ABC9C', '#E74C3C', '#34495E', '#16A085'
+            ];
+            return colors[id % colors.length];
+        }
+
+        $(document).ready(function() {
+            console.log('📅 Calendar initialization started');
+
+            // Check if required libraries are loaded
+            if (typeof FullCalendar === 'undefined') {
+                console.error('FullCalendar is not loaded');
+                alert('FullCalendar không được tải. Vui lòng tải lại trang.');
+                return;
+            }
+
+            console.log('✅ All libraries loaded successfully');
+
+            // Debug ViewBag data
+            console.log('ViewBag.Patients count:', @(ViewBag.Patients?.Count ?? 0));
+            console.log('ViewBag.Services count:', @(ViewBag.Services?.Count ?? 0));
+            console.log('ViewBag.Dentists count:', @(ViewBag.Dentists?.Count ?? 0));
+
+            // Check user authentication
+            console.log('User authenticated:', @(User.Identity?.IsAuthenticated.ToString().ToLower() ?? "false"));
+            console.log('User roles:', '@string.Join(",", User.Claims.Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role").Select(c => c.Value))');
+
+            var calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                console.error('Calendar element not found');
+                alert('Không tìm thấy element calendar. Vui lòng tải lại trang.');
+                return;
+            }
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: {
+                    today: 'Hôm nay',
+                    month: 'Tháng',
+                    week: 'Tuần',
+                    day: 'Ngày'
+                },
+                locale: 'vi',
+                slotMinTime: '08:00:00',
+                slotMaxTime: '20:00:00',
+                allDaySlot: false,
+                slotDuration: '00:30:00',
+                selectable: true,
+                selectMirror: true,
+                dayMaxEvents: true,
+                nowIndicator: true,
+                businessHours: {
+                    daysOfWeek: [1, 2, 3, 4, 5, 6],
+                    startTime: '08:00',
+                    endTime: '20:00',
+                },
+                events: {
+                    url: '@Url.Action("GetAppointments")',
+                    failure: function() {
+                        alert('Có lỗi xảy ra khi tải dữ liệu lịch hẹn!');
+                    }
+                },
+                eventClick: function(info) {
+                    showAppointmentDetails(info.event);
+                },
+                select: function(info) {
+                    console.log('Calendar select event triggered:', info);
+
+                    // Unselect the calendar selection immediately to prevent conflicts
+                    calendar.unselect();
+
+                    try {
+                        // Add a small delay to ensure calendar unselect is processed
+                        setTimeout(function() {
+                            showCreateAppointmentModal(info.start, info.end);
+                        }, 100);
+                    } catch (error) {
+                        console.error('Error in select handler:', error);
+                        alert('Có lỗi xảy ra khi mở form tạo lịch hẹn. Vui lòng thử lại.');
+                    }
+                },
+                eventDidMount: function(info) {
+                    let color;
+                    // Nếu lịch hẹn đã hoàn thành, sử dụng màu xanh lá cây
+                    if (info.event.extendedProps.status === 'Completed') {
+                        color = '#28a745'; // Màu xanh lá cây
+                        info.el.classList.add('completed');
+                    } else if (info.event.extendedProps.status === 'Cancelled') {
+                        color = '#dc3545'; // Màu đỏ cho lịch đã hủy
+                        info.el.classList.add('cancelled');
+                    } else {
+                        // Các lịch hẹn khác sẽ có màu ngẫu nhiên
+                        color = getColorFromId(info.event.id);
+                        info.el.classList.add('scheduled');
+                    }
+
+                    // Áp dụng màu cho sự kiện
+                    info.el.style.backgroundColor = color;
+                    info.el.style.borderColor = color;
+                }
+            });
+            calendar.render();
+
+            function showAppointmentDetails(event) {
+                try {
+                    $('#modalPatientName').text(event.extendedProps.patientName || 'N/A');
+                    $('#modalServiceName').text(event.extendedProps.serviceName || 'N/A');
+                    $('#modalDentistName').text(event.extendedProps.dentistName || 'N/A');
+                    $('#modalTime').text(formatTime(event.start) + ' - ' + formatTime(event.end));
+                    $('#modalStatus').text(getStatusText(event.extendedProps.status));
+                    $('#modalNotes').text(event.extendedProps.notes || 'Không có ghi chú');
+                    $('#modalEditBtn').attr('href', '@Url.Action("Edit")/' + event.id);
+
+                    // Ẩn/hiện nút đánh dấu hoàn thành dựa vào trạng thái
+                    if (event.extendedProps.status === 'Completed') {
+                        $('#markCompletedBtn').hide();
+                    } else {
+                        $('#markCompletedBtn').show();
+                    }
+
+                    // Lưu ID của lịch hẹn vào data attribute
+                    $('#appointmentModal').data('appointment-id', event.id);
+
+                    // Show modal using Bootstrap API
+                    var modalElement = document.getElementById('appointmentModal');
+                    var modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                } catch (error) {
+                    console.error('Error showing appointment details:', error);
+                    alert('Có lỗi xảy ra khi hiển thị chi tiết lịch hẹn.');
+                }
+            }
+
+            function showCreateAppointmentModal(start, end) {
+                console.log('🔄 Showing create appointment modal');
+
+                // Reset form first
+                document.getElementById('createAppointmentForm').reset();
+
+                // Set date and time values
+                document.querySelector('input[name="AppointmentDate"]').value = start.toISOString().split('T')[0];
+                document.querySelector('input[name="StartTime"]').value = start.toTimeString().slice(0, 5);
+                document.querySelector('input[name="EndTime"]').value = end.toTimeString().slice(0, 5);
+
+                // Use Bootstrap Modal API properly
+                var modalElement = document.getElementById('createAppointmentModal');
+                var modal = new bootstrap.Modal(modalElement, {
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true
+                });
+                modal.show();
+
+                console.log('✅ Modal displayed using Bootstrap API');
+            }
+
+            function formatTime(date) {
+                return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function getStatusText(status) {
+                switch(status) {
+                    case 'Scheduled': return 'Đã lên lịch';
+                    case 'Completed': return 'Đã hoàn thành';
+                    case 'Cancelled': return 'Đã hủy';
+                    case 'No-show': return 'Không đến';
+                    default: return status;
+                }
+            }
+
+            // Auto-calculate end time based on service duration
+            $('select[name="ServiceId"]').change(function() {
+                var serviceId = $(this).val();
+                if (serviceId) {
+                    $.get(`/Appointment/GetServiceDuration/${serviceId}`, function(duration) {
+                        var startTime = $('input[name="StartTime"]').val();
+                        if (startTime) {
+                            var [hours, minutes] = startTime.split(':');
+                            var startDate = new Date();
+                            startDate.setHours(parseInt(hours), parseInt(minutes));
+                            var endDate = new Date(startDate.getTime() + duration * 60000);
+                            var endTimeStr = endDate.toTimeString().slice(0, 5);
+                            // Chỉ cập nhật EndTime nếu chưa có giá trị
+                            if (!$('input[name="EndTime"]').val()) {
+                                $('input[name="EndTime"]').val(endTimeStr);
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Cho phép chỉnh sửa thời gian kết thúc
+            $('input[name="EndTime"]').on('change', function() {
+                var startTime = $('input[name="StartTime"]').val();
+                var endTime = $(this).val();
+                
+                if (startTime && endTime) {
+                    var [startHours, startMinutes] = startTime.split(':');
+                    var [endHours, endMinutes] = endTime.split(':');
+                    
+                    var startDate = new Date();
+                    startDate.setHours(parseInt(startHours), parseInt(startMinutes));
+                    
+                    var endDate = new Date();
+                    endDate.setHours(parseInt(endHours), parseInt(endMinutes));
+                    
+                    if (endDate <= startDate) {
+                        showErrorMessage('Thời gian kết thúc phải sau thời gian bắt đầu');
+                        $(this).val('');
+                    }
+                }
+            });
+
+            // Handle appointment creation
+            $('#saveAppointmentBtn').on('click', function() {
+                console.log('Save appointment button clicked');
+
+                var form = document.getElementById('createAppointmentForm');
+                if (!form.checkValidity()) {
+                    console.log('Form validation failed');
+                    form.reportValidity();
+                    return;
+                }
+
+                var formData = new FormData(form);
+                var data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                console.log('Form data collected:', data);
+
+                // Parse date and time
+                var appointmentDate = new Date(data.AppointmentDate);
+                var [startHours, startMinutes] = data.StartTime.split(':').map(Number);
+                var [endHours, endMinutes] = data.EndTime.split(':').map(Number);
+
+                // Create datetime objects
+                var startDateTime = new Date(appointmentDate);
+                startDateTime.setHours(startHours, startMinutes, 0, 0);
+
+                var endDateTime = new Date(appointmentDate);
+                endDateTime.setHours(endHours, endMinutes, 0, 0);
+
+                // Get current date and time
+                var now = new Date();
+                var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                // Check if appointment date is in the past
+                if (appointmentDate < today) {
+                    showNotification('error', 'Không thể tạo lịch hẹn trong quá khứ.');
+                    return;
+                }
+
+                // Check if start time is before current time for today's appointments
+                if (appointmentDate.getTime() === today.getTime()) {
+                    if (startDateTime < now) {
+                        showNotification('error', 'Thời gian bắt đầu phải sau thời gian hiện tại.');
+                        return;
+                    }
+                }
+
+                // Check if end time is after start time
+                if (endDateTime <= startDateTime) {
+                    showNotification('error', 'Thời gian kết thúc phải sau thời gian bắt đầu.');
+                    return;
+                }
+
+                // Check if appointment is within business hours (8:00 - 20:00)
+                var businessStart = new Date(appointmentDate);
+                businessStart.setHours(8, 0, 0, 0);
+                
+                var businessEnd = new Date(appointmentDate);
+                businessEnd.setHours(20, 0, 0, 0);
+
+                if (startDateTime < businessStart || endDateTime > businessEnd) {
+                    showNotification('error', 'Lịch hẹn phải nằm trong giờ làm việc (8:00 - 20:00).');
+                    return;
+                }
+
+                // Format the data for the server
+                var appointmentData = {
+                    PatientId: parseInt(data.PatientId),
+                    ServiceId: parseInt(data.ServiceId),
+                    DentistId: data.DentistId,
+                    AppointmentDate: appointmentDate.toISOString().split('T')[0],
+                    StartTime: startDateTime.toTimeString().slice(0, 8),
+                    EndTime: endDateTime.toTimeString().slice(0, 8),
+                    Notes: data.Notes || '',
+                    Status: 'Scheduled'
+                };
+
+                // Disable save button and show loading state
+                var saveBtn = $('#saveAppointmentBtn');
+                var originalBtnText = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+
+                console.log('Sending AJAX request with data:', appointmentData);
+
+                $.ajax({
+                    url: '@Url.Action("Create")',
+                    type: 'POST',
+                    data: appointmentData,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        console.log('AJAX Success response:', response);
+                        if (response.success) {
+                            // Close modal using Bootstrap API
+                            var modalElement = document.getElementById('createAppointmentModal');
+                            var modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            }
+
+                            // Refresh calendar
+                            calendar.refetchEvents();
+                            alert('Lịch hẹn đã được tạo thành công!');
+                        } else {
+                            var errorMessage = response.errors ? response.errors.join('\n') : 'Có lỗi xảy ra khi tạo lịch hẹn.';
+                            console.log('Server returned errors:', response.errors);
+                            alert('Lỗi: ' + errorMessage);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('AJAX Error - Status:', status);
+                        console.log('AJAX Error - Error:', error);
+                        console.log('AJAX Error - Response:', xhr.responseText);
+                        console.log('AJAX Error - Status Code:', xhr.status);
+
+                        var errorMessage = 'Có lỗi xảy ra khi tạo lịch hẹn.';
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = xhr.responseJSON.errors.join('<br>');
+                        } else if (xhr.status === 401) {
+                            errorMessage = 'Bạn không có quyền thực hiện thao tác này. Vui lòng đăng nhập lại.';
+                        } else if (xhr.status === 403) {
+                            errorMessage = 'Bạn không có quyền tạo lịch hẹn. Vui lòng liên hệ quản trị viên.';
+                        }
+                        showNotification('error', errorMessage);
+                        console.error('Error:', error);
+                    },
+                    complete: function() {
+                        // Restore save button state
+                        saveBtn.prop('disabled', false).html(originalBtnText);
+                    }
+                });
+            });
+
+            // Simple notification function
+            function showNotification(type, message) {
+                alert((type === 'success' ? 'Thành công: ' : 'Lỗi: ') + message);
+            }
+
+            // Test function to check modal
+            window.testModal = function() {
+                console.log('🧪 Testing modal functionality');
+                var now = new Date();
+                var end = new Date(now.getTime() + 90 * 60000); // 90 minutes later
+                showCreateAppointmentModal(now, end);
+            }
+
+            // Xử lý sự kiện đánh dấu hoàn thành
+            $('#markCompletedBtn').on('click', function() {
+                var appointmentId = $('#appointmentModal').data('appointment-id');
+                if (confirm('Bạn có chắc muốn đánh dấu lịch hẹn này đã hoàn thành?')) {
+                    $.ajax({
+                        url: '@Url.Action("MarkAsCompleted")',
+                        type: 'POST',
+                        data: { id: appointmentId },
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                var modalElement = document.getElementById('appointmentModal');
+                                var modal = bootstrap.Modal.getInstance(modalElement);
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                calendar.refetchEvents();
+                                showNotification('success', 'Đã đánh dấu lịch hẹn hoàn thành!');
+                            } else {
+                                showNotification('error', response.errors.join('<br>'));
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            showNotification('error', 'Có lỗi xảy ra khi cập nhật trạng thái. Vui lòng thử lại.');
+                            console.error('Error:', error);
+                        }
+                    });
+                }
+            });
+
+            // Xử lý sự kiện xóa lịch hẹn
+            $('#deleteAppointmentBtn').on('click', function() {
+                var appointmentId = $('#appointmentModal').data('appointment-id');
+                if (confirm('Bạn có chắc muốn xóa lịch hẹn này?')) {
+                    $.ajax({
+                        url: '@Url.Action("Delete")',
+                        type: 'POST',
+                        data: { id: appointmentId },
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                var modalElement = document.getElementById('appointmentModal');
+                                var modal = bootstrap.Modal.getInstance(modalElement);
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                calendar.refetchEvents();
+                                showNotification('success', 'Đã xóa lịch hẹn thành công!');
+                            } else {
+                                showNotification('error', response.errors.join('<br>'));
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            showNotification('error', 'Có lỗi xảy ra khi xóa lịch hẹn. Vui lòng thử lại.');
+                            console.error('Error:', error);
+                        }
+                    });
+                }
+            });
+
+            // Handle cancel button click
+            $('#cancelAppointmentBtn').on('click', function() {
+                console.log('Cancel button clicked');
+                var modalElement = document.getElementById('createAppointmentModal');
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            });
+
+            // Refresh calendar every 5 minutes
+            setInterval(function() {
+                calendar.refetchEvents();
+            }, 150000);
+        });
+    </script>
+} 

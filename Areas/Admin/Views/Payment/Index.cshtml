@@ -1,0 +1,687 @@
+@model IEnumerable<MyMvcApp.ViewModels.Admin.PaymentAppointmentViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý thanh toán";
+}
+
+@section Styles {
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="~/css/admin.css" rel="stylesheet">
+}
+
+
+    
+        <!-- Sidebar -->
+        
+
+        <!-- Main content -->
+        
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="fas fa-credit-card"></i> Quản lý thanh toán
+                    <span class="badge bg-warning ms-2">@Model.Count() lịch hẹn</span>
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Làm mới
+                        </button>
+                        <a asp-action="DailyRevenueReport" asp-controller="Payment" class="btn btn-sm btn-outline-info ms-2">
+                            <i class="fas fa-chart-line"></i> Báo cáo doanh thu ngày
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="appointmentTable">
+                                <thead>
+                                    <tr>
+                                        <th>Mã lịch hẹn</th>
+                                        <th>Bệnh nhân</th>
+                                        <th>Dịch vụ</th>
+                                        <th>Bác sĩ</th>
+                                        <th>Ngày khám</th>
+                                        <th>Giờ khám</th>
+                                        <th>Số tiền</th>
+                                        <th>Trạng thái thanh toán</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.Appointment.Id</td>
+                                            <td>@item.Appointment.Patient.FullName</td>
+                                            <td>@item.Appointment.Service.Name</td>
+                                            <td>@item.Appointment.Dentist.FullName</td>
+                                            <td>@item.Appointment.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@item.Appointment.StartTime.ToString(@"hh\:mm") - @item.Appointment.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>
+                                                <span class="fw-bold text-success">@item.Appointment.Service.Price.ToString("N0") VNĐ</span>
+                                            </td>
+                                            <td>
+                                                @if (item.IsPaid)
+                                                {
+                                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> @item.PaymentStatusString</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> @item.PaymentStatusString</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    @if (!item.IsPaid)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-primary" onclick="createMoMoPayment('@item.Appointment.Id', '@item.Appointment.Patient.FullName', '@item.Appointment.Service.Name', @item.Appointment.Service.Price)">
+                                                            <i class="fas fa-qrcode"></i> Thanh toán MoMo
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-success ms-1" 
+                                                                onclick="directMarkAsCashPaid('@item.Appointment.Id', '@item.Appointment.Patient.FullName', @item.Appointment.Service.Price)">
+                                                            <i class="fas fa-hand-holding-usd"></i> Đã thu tiền
+                                                        </button>
+                                                    }
+                                                    <a href="@Url.Action("PaymentDetails", "Payment", new { appointmentId = item.Appointment.Id })" class="btn btn-sm btn-info ms-1 @(item.IsPaid ? "" : "ms-lg-2")">
+                                                        <i class="fas fa-eye"></i> Chi tiết
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h4>Không có lịch hẹn nào cần thanh toán</h4>
+                            <p class="text-muted">Tất cả lịch hẹn đã hoàn thành đều đã được thanh toán.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        
+
+<!-- Modal QR Code MoMo -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="qrModalLabel">
+                    <i class="fas fa-qrcode"></i> Thanh toán MoMo QR Code
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="payment-info" class="mb-3">
+                    <!-- Thông tin thanh toán sẽ được điền ở đây -->
+                </div>
+                <div id="qrCodeContainer" class="text-center">
+                    <!-- QR Code sẽ được hiển thị ở đây -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-info" onclick="refreshQRCode()">
+                    <i class="fas fa-redo"></i> Làm mới QR
+                </button>
+                <button type="button" class="btn btn-primary" onclick="checkPaymentStatus()">
+                    <i class="fas fa-search"></i> Kiểm tra thanh toán
+                </button>
+                <button type="button" class="btn btn-success" onclick="simulatePaymentSuccess()" title="Mô phỏng thành công">
+                    <i class="fas fa-check"></i> Mô phỏng thành công
+                </button>
+            </div>
+        </div>
+
+<!-- Modal Xác nhận Tiền mặt -->
+<div class="modal fade" id="cashModal" tabindex="-1" aria-labelledby="cashModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="cashModalLabel">
+                    <i class="fas fa-money-bill-wave"></i> Xác nhận Thanh toán Tiền mặt
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cash-payment-info">
+                    <!-- Thông tin thanh toán tiền mặt sẽ được điền ở đây -->
+                </div>
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Lưu ý:</h6>
+                    <p class="mb-0">Vui lòng xác nhận đã nhận đủ số tiền từ bệnh nhân trước khi nhấn "Xác nhận thanh toán".</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="confirmCashPayment()">
+                    <i class="fas fa-check"></i> Xác nhận thanh toán
+                </button>
+            </div>
+        </div>
+
+@section Scripts {
+    <!-- DataTables CSS and JS -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Check if DataTable is already initialized
+            if ($.fn.DataTable.isDataTable('#appointmentTable')) {
+                $('#appointmentTable').DataTable().destroy();
+            }
+
+            // Initialize DataTable
+            $('#appointmentTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                order: [[0, 'desc']],
+                pageLength: 25,
+                responsive: true
+            });
+        });
+
+        // Global variables
+        let currentAppointmentId = 0;
+        let currentOrderId = '';
+        let currentPaymentData = {};
+        let qrRetryCount = 0;
+        const MAX_QR_RETRY = 3;
+        let qrSuccessShown = false;
+        let qrTimeoutId = null;
+        const QR_TIMEOUT_MINUTES = 5;
+
+        // Tạo thanh toán MoMo
+        function createMoMoPayment(appointmentId, patientName, serviceName, amount) {
+            currentAppointmentId = appointmentId;
+
+            // Kiểm tra và xử lý amount
+            if (!amount || isNaN(amount)) {
+                showError('Số tiền không hợp lệ');
+                return;
+            }
+
+            // Chuyển đổi amount thành số nếu cần
+            const numericAmount = parseFloat(amount);
+
+            // Hiển thị thông tin thanh toán
+            document.getElementById('payment-info').innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Thông tin thanh toán:</h6>
+                        <p class="mb-1"><strong>Bệnh nhân:</strong> ${patientName}</p>
+                        <p class="mb-1"><strong>Dịch vụ:</strong> ${serviceName}</p>
+                        <p class="mb-0"><strong>Số tiền:</strong> <span class="text-success fw-bold">${numericAmount.toLocaleString('vi-VN')} VNĐ</span></p>
+                    </div>
+                </div>
+            `;
+
+            // Hiển thị loading trong QR container
+            document.getElementById('qrCodeContainer').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tạo thanh toán MoMo...</span>
+                    </div>
+                    <p class="mt-2">Đang tạo thanh toán MoMo...</p>
+                </div>
+            `;
+
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+            modal.show();
+
+            // Gọi API tạo thanh toán MoMo
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("CreateMoMoPayment")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `appointmentId=${appointmentId}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentOrderId = data.orderId;
+                    currentPaymentData = data;
+
+                    // Hiển thị QR Code
+                    displayQRCode(data.qrCodeUrl, data.payUrl, data.orderId);
+                } else {
+                    showError('Lỗi tạo thanh toán MoMo: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Có lỗi xảy ra khi tạo thanh toán MoMo');
+            });
+        }
+
+        // Hiển thị QR Code
+        function displayQRCode(qrCodeUrl, payUrl, orderId) {
+            const container = document.getElementById('qrCodeContainer');
+
+            // Reset các flag khi tạo QR mới
+            qrRetryCount = 0;
+            qrSuccessShown = false;
+
+            // Clear timeout cũ nếu có
+            if (qrTimeoutId) {
+                clearTimeout(qrTimeoutId);
+                qrTimeoutId = null;
+            }
+
+            if (qrCodeUrl) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <img src="${qrCodeUrl}" alt="QR Code" class="img-fluid border rounded"
+                             style="max-width: 300px;"
+                             onload="showQRSuccess('${orderId}')"
+                             onerror="handleQRError('${payUrl}', '${orderId}')">
+                    </div>
+                `;
+            } else {
+                generateQRFallback(payUrl, orderId);
+            }
+        }
+
+        // Xử lý lỗi QR Code với retry logic
+        function handleQRError(payUrl, orderId) {
+            qrRetryCount++;
+            console.log(`QR Error - Retry count: ${qrRetryCount}`);
+
+            if (qrRetryCount <= MAX_QR_RETRY) {
+                // Thử fallback QR server
+                generateQRFallback(payUrl, orderId);
+            } else {
+                // Đã thử quá nhiều lần, hiển thị lỗi cuối cùng
+                showQRError();
+            }
+        }
+
+        // Fallback QR generation
+        function generateQRFallback(payUrl, orderId) {
+            const container = document.getElementById('qrCodeContainer');
+            const qrServerUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payUrl)}`;
+
+            container.innerHTML = `
+                <div class="text-center">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i> Đang tải mã QR từ server dự phòng...
+                    </div>
+                    <img src="${qrServerUrl}" alt="QR Code" class="img-fluid border rounded"
+                         style="max-width: 300px;"
+                         onload="showQRSuccess('${orderId}')"
+                         onerror="handleQRError('${payUrl}', '${orderId}')">
+                </div>
+            `;
+        }
+
+        // Hiển thị QR thành công
+        function showQRSuccess(orderId) {
+            // Tránh hiển thị nhiều lần
+            if (qrSuccessShown) {
+                return;
+            }
+            qrSuccessShown = true;
+
+            const container = document.getElementById('qrCodeContainer');
+            const existingImg = container.querySelector('img');
+
+            // Chỉ giữ lại QR image và thay thế toàn bộ nội dung
+            container.innerHTML = `
+                <div class="text-center">
+                    ${existingImg ? existingImg.outerHTML : ''}
+                    <div class="mt-3">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-qrcode"></i> Mã QR đã sẵn sàng!</h6>
+                            <p class="mb-2"><strong>Mã đơn hàng:</strong> ${orderId}</p>
+                        </div>
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-clock"></i> Thời gian hiệu lực:</h6>
+                            <p class="mb-2">Mã QR có hiệu lực trong <strong>${QR_TIMEOUT_MINUTES} phút</strong></p>
+                            <div id="qrCountdown" class="fw-bold text-danger"></div>
+                        </div>
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-mobile-alt"></i> Hướng dẫn thanh toán:</h6>
+                            <ol class="mb-0">
+                                <li>Mở ứng dụng MoMo trên điện thoại</li>
+                                <li>Chọn "Quét mã QR"</li>
+                                <li>Quét mã QR hiển thị trên màn hình</li>
+                                <li>Xác nhận thông tin và thanh toán</li>
+                            </ol>
+                        </div>
+                        <button class="btn btn-primary me-2" onclick="checkPaymentStatus()">
+                            <i class="fas fa-search"></i> Kiểm tra thanh toán
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshQRCode()">
+                            <i class="fas fa-refresh"></i> Làm mới QR
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Bắt đầu đếm ngược
+            startQRCountdown();
+        }
+
+        // Hiển thị lỗi QR
+        function showQRError() {
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Không thể tạo mã QR</h6>
+                    <p class="mb-3">Có lỗi xảy ra khi tạo mã QR sau ${MAX_QR_RETRY} lần thử.</p>
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb"></i> Giải pháp thay thế:</h6>
+                        <p class="mb-2">1. Kiểm tra kết nối internet và thử lại</p>
+                        <p class="mb-2">2. Sử dụng thanh toán tiền mặt</p>
+                        <p class="mb-0">3. Liên hệ bộ phận kỹ thuật nếu vấn đề tiếp tục</p>
+                    </div>
+                    <button class="btn btn-secondary me-2" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i> Tải lại trang
+                    </button>
+                    <button class="btn btn-warning" onclick="bootstrap.Modal.getInstance(document.getElementById('qrModal')).hide()">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                </div>
+            `;
+        }
+
+        // Hiển thị lỗi chung
+        function showError(message) {
+            document.getElementById('qrCodeContainer').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Lỗi</h6>
+                    <p class="mb-0">${message}</p>
+                </div>
+            `;
+        }
+
+        // Bắt đầu đếm ngược QR timeout
+        function startQRCountdown() {
+            let timeLeft = QR_TIMEOUT_MINUTES * 60; // Convert to seconds
+
+            function updateCountdown() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                const countdownElement = document.getElementById('qrCountdown');
+
+                if (countdownElement) {
+                    if (timeLeft > 0) {
+                        countdownElement.innerHTML = `Còn lại: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        timeLeft--;
+                    } else {
+                        countdownElement.innerHTML = 'Mã QR đã hết hạn!';
+                        showQRExpired();
+                        return;
+                    }
+                }
+            }
+
+            // Update immediately
+            updateCountdown();
+
+            // Set timeout để hết hạn QR
+            qrTimeoutId = setInterval(updateCountdown, 1000);
+        }
+
+        // Hiển thị QR hết hạn
+        function showQRExpired() {
+            if (qrTimeoutId) {
+                clearInterval(qrTimeoutId);
+                qrTimeoutId = null;
+            }
+
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <h6><i class="fas fa-clock"></i> Mã QR đã hết hạn</h6>
+                    <p class="mb-3">Mã QR đã hết hiệu lực sau ${QR_TIMEOUT_MINUTES} phút.</p>
+                    <button class="btn btn-primary me-2" onclick="refreshQRCode()">
+                        <i class="fas fa-refresh"></i> Tạo mã QR mới
+                    </button>
+                    <button class="btn btn-secondary" onclick="bootstrap.Modal.getInstance(document.getElementById('qrModal')).hide()">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                </div>
+            `;
+        }
+
+        // Làm mới QR Code
+        function refreshQRCode() {
+            if (currentPaymentData.payUrl && currentPaymentData.orderId) {
+                // Reset các flag và timeout
+                qrRetryCount = 0;
+                qrSuccessShown = false;
+                if (qrTimeoutId) {
+                    clearInterval(qrTimeoutId);
+                    qrTimeoutId = null;
+                }
+                displayQRCode(currentPaymentData.qrCodeUrl, currentPaymentData.payUrl, currentPaymentData.orderId);
+            } else {
+                showError('Không có thông tin thanh toán để làm mới');
+            }
+        }
+
+        // Kiểm tra trạng thái thanh toán
+        function checkPaymentStatus() {
+            if (!currentOrderId) {
+                alert('Không có giao dịch nào để kiểm tra');
+                return;
+            }
+
+            // Hiển thị loading trong một modal hoặc alert riêng
+            const statusModal = document.createElement('div');
+            statusModal.className = 'modal fade';
+            statusModal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Kiểm tra thanh toán</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Đang kiểm tra...</span>
+                            </div>
+                            <p>Đang kiểm tra trạng thái thanh toán...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(statusModal);
+            const modal = new bootstrap.Modal(statusModal);
+            modal.show();
+
+            setTimeout(() => {
+                statusModal.querySelector('.modal-body').innerHTML = `
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle"></i> Trạng thái thanh toán</h6>
+                        <p class="mb-3">Chưa nhận được xác nhận thanh toán từ MoMo.</p>
+                        <button class="btn btn-success me-2" onclick="simulatePaymentSuccess(); bootstrap.Modal.getInstance(this.closest('.modal')).hide();">
+                            <i class="fas fa-check"></i> Mô phỏng thành công
+                        </button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Đóng
+                        </button>
+                    </div>
+                `;
+            }, 2000);
+
+            // Auto remove modal after hide
+            statusModal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(statusModal);
+            });
+        }
+
+        // Mô phỏng thanh toán thành công
+        function simulatePaymentSuccess() {
+            if (!currentOrderId) {
+                alert('Không có giao dịch nào để mô phỏng');
+                return;
+            }
+
+            if (confirm('Mô phỏng thanh toán thành công cho đơn hàng: ' + currentOrderId + '?')) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('qrModal'));
+                modal.hide();
+
+                setTimeout(() => {
+                    alert('Mô phỏng thanh toán thành công! Trang sẽ được tải lại để cập nhật trạng thái.');
+                    location.reload();
+                }, 500);
+            }
+        }
+
+        // Tạo thanh toán tiền mặt
+        function createCashPayment(appointmentId, patientName, amount) {
+            currentAppointmentId = appointmentId;
+
+            // Kiểm tra và xử lý amount
+            if (!amount || isNaN(amount)) {
+                showError('Số tiền không hợp lệ');
+                return;
+            }
+
+            // Chuyển đổi amount thành số nếu cần
+            const numericAmount = parseFloat(amount);
+
+            document.getElementById('cash-payment-info').innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Thông tin thanh toán tiền mặt:</h6>
+                        <p class="mb-1"><strong>Bệnh nhân:</strong> ${patientName}</p>
+                        <p class="mb-0"><strong>Số tiền cần thu:</strong> <span class="text-success fw-bold fs-5">${numericAmount.toLocaleString('vi-VN')} VNĐ</span></p>
+                    </div>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('cashModal'));
+            modal.show();
+        }
+
+        // Xác nhận thanh toán tiền mặt
+        function confirmCashPayment() {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("CreateCashPayment")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `appointmentId=${currentAppointmentId}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('cashModal'));
+                    modal.hide();
+
+                    setTimeout(() => {
+                        alert('Thanh toán tiền mặt thành công! Trang sẽ được tải lại để cập nhật trạng thái.');
+                        location.reload();
+                    }, 500);
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo thanh toán tiền mặt');
+            });
+        }
+
+    // Helper function to show temporary messages
+    function showTemporaryMessage(message, type = 'success', duration = 5000) {
+        const alertId = 'temp-alert-' + Date.now();
+        const alertHtml = `
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+        
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+        setTimeout(() => {
+            const alertElement = document.getElementById(alertId);
+            if (alertElement) {
+                bootstrap.Alert.getOrCreateInstance(alertElement).close();
+            }
+        }, duration);
+    }
+
+    // Function to directly mark an appointment as paid by cash
+    function directMarkAsCashPaid(appointmentId, patientName, amount) {
+        // Kiểm tra và xử lý amount
+        if (!amount || isNaN(amount)) {
+            showError('Số tiền không hợp lệ');
+            return;
+        }
+
+        // Chuyển đổi amount thành số nếu cần
+        const numericAmount = parseFloat(amount);
+
+        if (!confirm(`Xác nhận đã thu tiền mặt ${numericAmount.toLocaleString('vi-VN')} VNĐ cho bệnh nhân ${patientName} (Mã lịch hẹn: ${appointmentId})?`)) {
+            return;
+        }
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const url = '@Url.Action("CreateCashPayment", "Payment")';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'appointmentId': appointmentId,
+                '__RequestVerificationToken': token 
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showTemporaryMessage('Đã cập nhật trạng thái thanh toán tiền mặt thành công!', 'success');
+                setTimeout(() => {
+                    location.reload(); // Reload the page to update the table
+                }, 1500); // Wait a bit for the user to see the message
+            } else {
+                showTemporaryMessage('Lỗi: ' + (data.message || 'Không thể cập nhật trạng thái thanh toán.'), 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error marking cash payment:', error);
+            showTemporaryMessage('Có lỗi xảy ra khi thực hiện thao tác.', 'danger');
+        });
+    }
+    </script>
+}

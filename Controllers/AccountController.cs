@@ -30,6 +30,7 @@ namespace MyMvcApp.Controllers
             _emailSender = emailSender;
         }
 
+        // Admin Register (existing functionality)
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Register()
@@ -59,7 +60,7 @@ namespace MyMvcApp.Controllers
                 {
                     // Assign role based on user type
                     await _userManager.AddToRoleAsync(user, model.Role);
-                    return RedirectToAction("Index", "Admin");
+                    return RedirectToAction("Index", "Home", new { area = "Admin" });
                 }
 
                 foreach (var error in result.Errors)
@@ -68,6 +69,73 @@ namespace MyMvcApp.Controllers
                 }
             }
             return View(model);
+        }
+
+        // Public User Registration
+        [HttpGet]
+        public IActionResult UserRegister()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UserRegister(UserRegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Check if email already exists
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Email", "Email này đã được sử dụng.");
+                    return View(model);
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FullName = model.FullName,
+                    PhoneNumber = model.PhoneNumber,
+                    DateOfBirth = DateOnly.FromDateTime(DateTime.Now.AddYears(-18)), // Default age 18
+                    Gender = "Không xác định", // Default gender
+                    CreatedAt = DateTime.Now,
+                    IsActive = true,
+                    SecurityStamp = Guid.NewGuid().ToString()
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    // Assign User role
+                    await _userManager.AddToRoleAsync(user, "User");
+
+                    // Auto sign in the user
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    TempData["SuccessMessage"] = "Đăng ký thành công! Chào mừng bạn đến với hệ thống.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult LoginDemo()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult PerformanceInfo()
+        {
+            return View();
         }
 
         [HttpGet]
@@ -95,11 +163,15 @@ namespace MyMvcApp.Controllers
 
                     if (await _userManager.IsInRoleAsync(user, "Admin"))
                     {
-                        return RedirectToAction("Index", "Admin");
+                        return RedirectToAction("Index", "Home", new { area = "Admin" });
                     }
                     else if (await _userManager.IsInRoleAsync(user, "Dentist") || await _userManager.IsInRoleAsync(user, "Staff"))
                     {
                         return RedirectToAction("Index", "User");
+                    }
+                    else if (await _userManager.IsInRoleAsync(user, "User"))
+                    {
+                        return RedirectToAction("Index", "Home");
                     }
                     return RedirectToAction("Index", "Home");
                 }
@@ -124,6 +196,14 @@ namespace MyMvcApp.Controllers
             HttpContext.Session.Clear();
 
             return RedirectToAction("Login");
+        }
+
+        // Handle logout requests from any area (including Admin)
+        [HttpGet]
+        [HttpPost]
+        public async Task<IActionResult> LogoutFromAdmin()
+        {
+            return await Logout();
         }
 
         [Authorize]
@@ -253,13 +333,25 @@ namespace MyMvcApp.Controllers
             return RedirectToAction(nameof(Settings));
         }
 
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult SessionInfo()
+        {
+            return View();
+        }
+
         private IActionResult RedirectToLocal(string? returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
             }
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home", new { area = "Admin" });
         }
     }
 }

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Admin Panel - Nha Khoa 3B</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/styles.css">
+    <link rel="stylesheet" href="~/css/modern-animations.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #1a252f 0%, #2c3e50 100%);
+            min-height: calc(100vh - 76px); /* Subtract navbar height */
+            padding-top: 1rem;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+            border-radius: 0 15px 15px 0;
+            position: fixed;
+            top: 76px; /* Height of navbar */
+            left: 0;
+            width: 250px; /* Fixed width for sidebar */
+            z-index: 1000;
+        }
+
+        .sidebar .nav-link {
+            color: #ffffff;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            opacity: 0.9;
+        }
+
+        .sidebar .nav-link:hover {
+            color: #ffffff;
+            background: linear-gradient(135deg, #4A9F9F 0%, #5dade2 100%);
+            transform: translateX(5px);
+            border-left: 3px solid #4A9F9F;
+            box-shadow: 0 4px 15px rgba(74, 159, 159, 0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            opacity: 1;
+        }
+
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #4A9F9F 0%, #5dade2 100%);
+            border-left: 3px solid #4A9F9F;
+            box-shadow: 0 4px 15px rgba(74, 159, 159, 0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-weight: 600;
+            opacity: 1;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 1.2rem;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin: 1rem;
+            margin-left: 270px; /* Space for fixed sidebar */
+            margin-right: 2rem; /* Add right margin */
+            max-width: calc(100vw - 320px); /* Limit max width */
+            width: calc(100vw - 320px); /* Set specific width */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            min-height: calc(100vh - 120px);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%) !important;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            border-bottom: none !important;
+        }
+
+        .navbar-brand {
+            color: #4A9F9F !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(74, 159, 159, 0.3);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4A9F9F 0%, #5dade2 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3a8f8f 0%, #4d9dd2 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 159, 159, 0.4);
+        }
+
+        .alert {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #4A9F9F 0%, #5dade2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .badge {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+
+        /* Content styling */
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4A9F9F 0%, #2E7D7D 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2E7D7D 0%, #1a5a5a 100%);
+            transform: translateY(-1px);
+        }
+
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        @@keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 280px;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 1rem;
+                margin-right: 1rem;
+                max-width: calc(100vw - 2rem);
+            }
+
+            .navbar-toggler {
+                display: block !important;
+            }
+        }
+
+        @@media (min-width: 769px) {
+            .navbar-toggler {
+                display: none !important;
+            }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="navbar-nav flex-grow-1">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Landing">Nha khoa 3B</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <span class="nav-link text-muted">Admin Panel</span>
+                        </li>
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Unified Sidebar -->
+    @await Html.PartialAsync("~/Views/Shared/_UnifiedSidebar.cshtml")
+
+    <!-- Main content -->
+    <main class="main-content fade-in">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+        @RenderBody()
+    </main>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="~/js/script.js"></script>
+    <script src="~/js/modern-effects.js"></script>
+
+    <script>
+        // Toggle sidebar on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            const sidebar = document.querySelector('.sidebar');
+
+            if (navbarToggler && sidebar) {
+                navbarToggler.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        if (!sidebar.contains(e.target) && !navbarToggler.contains(e.target)) {
+                            sidebar.classList.remove('show');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

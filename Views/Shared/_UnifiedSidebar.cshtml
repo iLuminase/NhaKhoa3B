@@ -1,0 +1,260 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+    
+    var user = await UserManager.GetUserAsync(User);
+    var isAdmin = user != null && await UserManager.IsInRoleAsync(user, "Admin");
+    var isStaff = user != null && await UserManager.IsInRoleAsync(user, "Staff");
+    var isDentist = user != null && await UserManager.IsInRoleAsync(user, "Dentist");
+    
+    var userRole = isAdmin ? "Admin" : (isStaff ? "Staff" : (isDentist ? "Dentist" : "User"));
+    var roleIcon = isAdmin ? "fas fa-user-shield" : (isStaff ? "fas fa-user-nurse" : (isDentist ? "fas fa-user-md" : "fas fa-user"));
+    var roleColor = isAdmin ? "text-danger" : (isStaff ? "text-info" : (isDentist ? "text-success" : "text-primary"));
+}
+
+<!-- Unified Sidebar for Admin, Staff, and Dentist -->
+<nav class="sidebar slide-in-left">
+    <div class="pt-3 px-3">
+        <!-- User Role Header -->
+        <div class="text-center mb-4 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div class="user-avatar mb-2">
+                <i class="@roleIcon @roleColor" style="font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></i>
+            </div>
+            <h5 class="text-white fw-bold mb-1" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                @userRole Panel
+            </h5>
+            <small class="text-light opacity-75">@user?.FullName</small>
+            <div class="mt-2">
+                <span class="badge bg-primary bg-opacity-75 px-3 py-1">@userRole</span>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <ul class="nav flex-column">
+            <!-- Dashboard - Available for all roles -->
+            <li class="nav-item">
+                <a class="nav-link @(currentAction == "Index" && currentController == "Home" && currentArea == "Admin" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Appointments - Available for all roles -->
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Appointment" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Appointment" asp-action="Index">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Quản lý lịch hẹn</span>
+                </a>
+            </li>
+
+            <!-- Appointment Calendar - Available for all roles -->
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Appointment" && currentAction == "Calendar" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Appointment" asp-action="Calendar">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Lịch hẹn</span>
+                </a>
+            </li>
+
+            <!-- Patients - Available for all roles -->
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Patient" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Patient" asp-action="Index">
+                    <i class="fas fa-user-injured"></i>
+                    <span>Quản lý bệnh nhân</span>
+                </a>
+            </li>
+
+            <!-- Services - Available for Admin and Staff -->
+            @if (isAdmin || isStaff)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Service" && currentAction == "Index" ? "active" : "")"
+                       asp-area="Admin" asp-controller="Service" asp-action="Index">
+                        <i class="fas fa-tooth"></i>
+                        <span>Quản lý dịch vụ</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Service" && currentAction == "Categories" ? "active" : "")"
+                       asp-area="Admin" asp-controller="Service" asp-action="Categories">
+                        <i class="fas fa-tags"></i>
+                        <span>Danh mục dịch vụ</span>
+                    </a>
+                </li>
+            }
+
+            <!-- Payments - Available for Admin and Staff -->
+            @if (isAdmin || isStaff)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Payment" ? "active" : "")"
+                       asp-area="Admin" asp-controller="Payment" asp-action="Index">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Quản lý thanh toán</span>
+                    </a>
+                </li>
+            }
+
+            <!-- Divider -->
+            <li class="nav-divider my-3"></li>
+
+            <!-- Admin Only Features -->
+            @if (isAdmin)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "UserManagement" ? "active" : "")"
+                       asp-area="Admin" asp-controller="UserManagement" asp-action="Index">
+                        <i class="fas fa-users"></i>
+                        <span>Quản lý người dùng</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Report" ? "active" : "")"
+                       asp-area="Admin" asp-controller="Report" asp-action="Index">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Báo cáo</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "TestData" ? "active" : "")"
+                       asp-area="Admin" asp-controller="TestData" asp-action="CreateTestData">
+                        <i class="fas fa-database"></i>
+                        <span>Dữ liệu test</span>
+                    </a>
+                </li>
+            }
+
+            <!-- Divider -->
+            <li class="nav-divider my-3"></li>
+
+            <!-- Profile & Settings -->
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Hồ sơ cá nhân</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="ChangePassword">
+                    <i class="fas fa-key"></i>
+                    <span>Đổi mật khẩu</span>
+                </a>
+            </li>
+
+            <!-- Logout -->
+            <li class="nav-item mt-3">
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="nav-link border-0 bg-transparent text-start w-100"
+                            style="color: #ffffff; opacity: 0.9;"
+                            onclick="return confirm('Bạn có chắc chắn muốn đăng xuất?')">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Đăng xuất</span>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<style>
+    .sidebar {
+        background: linear-gradient(180deg, #1a252f 0%, #2c3e50 100%);
+        min-height: calc(100vh - 76px);
+        padding-top: 1rem;
+        box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+        border-radius: 0 15px 15px 0;
+        position: fixed;
+        top: 76px;
+        left: 0;
+        width: 280px;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+
+    .sidebar .nav-link {
+        color: #ffffff;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+        font-weight: 500;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+    }
+
+    .sidebar .nav-link i {
+        margin-right: 0.75rem;
+        width: 1.2rem;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    .sidebar .nav-link:hover {
+        color: #ffffff;
+        background: linear-gradient(135deg, #4A9F9F 0%, #5dade2 100%);
+        transform: translateX(5px);
+        border-left: 3px solid #4A9F9F;
+        box-shadow: 0 4px 15px rgba(74, 159, 159, 0.4);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        opacity: 1;
+    }
+
+    .sidebar .nav-link.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, #4A9F9F 0%, #5dade2 100%);
+        border-left: 3px solid #4A9F9F;
+        box-shadow: 0 4px 15px rgba(74, 159, 159, 0.4);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        font-weight: 600;
+        opacity: 1;
+    }
+
+    .nav-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        border: none;
+        margin: 1rem 0;
+    }
+
+    .user-avatar {
+        transition: transform 0.3s ease;
+    }
+
+    .user-avatar:hover {
+        transform: scale(1.1);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            width: 300px;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+    }
+
+    @@media (min-width: 769px) {
+        .navbar-toggler {
+            display: none !important;
+        }
+    }
+</style>

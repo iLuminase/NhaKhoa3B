@@ -1,0 +1,101 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+            <span class="brand-text">Nha Khoa 3B</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Navigation menu items for User -->
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home me-2"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="MyProfile">
+                            <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="MyAppointments">
+                            <i class="fas fa-calendar-alt me-2"></i>Lịch hẹn của tôi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="MyInvoices">
+                            <i class="fas fa-file-invoice me-2"></i>Hóa đơn của tôi
+                        </a>
+                    </li>
+                </ul>
+            }
+
+            <!-- User menu - moved to the right -->
+            <ul class="navbar-nav ms-auto">
+                 @* xử lý đăng nhập (nếu chưa đăng nhập thì hiển thị đăng nhập và đăng ký) *@
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    var user = await UserManager.GetUserAsync(User);
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span>@user.FullName</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <h6 class="dropdown-header">
+                                    <i class="fas fa-user me-2"></i>@user.FullName
+                                </h6>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Home" asp-action="UpdateProfile">
+                                    <i class="fas fa-edit me-2"></i>Chỉnh sửa thông tin
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Home" asp-action="ChangePassword">
+                                    <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Home" asp-action="MyProfile">
+                                    <i class="fas fa-user me-2"></i>Xem thông tin cá nhân
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Account" asp-action="Login">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Account" asp-action="UserRegister">
+                            <i class="fas fa-user-plus me-2"></i>Đăng ký
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>

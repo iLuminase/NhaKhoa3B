@@ -323,6 +323,7 @@ body {
     position: relative;
     overflow: hidden;
     margin-top: auto;
+    z-index: 1000; /* Higher than sidebar to prevent being covered */
 }
 
 .modern-footer::before {
