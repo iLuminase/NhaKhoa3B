@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using MyMvcApp.Models;
+using MyMvcApp.ViewModels;
 using MyMvcApp.Services.Interfaces;
 using MyMvcApp.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Linq;
-using MyMvcApp.ViewModels;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize]
     public class ReportController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -76,7 +76,7 @@ namespace MyMvcApp.Areas.Admin.Controllers
             var patientData = _context.Patients
                 .Select(p => new PatientReportViewModel
                 {
-                    PatientName = p.FullName,
+                    PatientName = p.Name,
                     TotalAppointments = p.Appointments.Count,
                     TotalPayments = p.Payments.Sum(pay => pay.Amount),
                     LastVisit = p.Appointments
@@ -112,4 +112,4 @@ namespace MyMvcApp.Areas.Admin.Controllers
             return View(staffData);
         }
     }
-}
+} 

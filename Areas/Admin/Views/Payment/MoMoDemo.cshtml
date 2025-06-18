@@ -2,18 +2,18 @@
     ViewData["Title"] = "Demo MoMo Payment";
 }
 
-
-    
+<div class="container-fluid">
+    <div class="row">
         <!-- Sidebar -->
-        
+        <partial name="_AdminSidebar" />
 
         <!-- Main content -->
-        
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Demo MoMo Payment Integration</h1>
             </div>
 
-            
+            <div class="row">
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header bg-primary text-white">
@@ -139,7 +139,9 @@
                     </div>
                 </div>
             </div>
-        
+        </main>
+    </div>
+</div>
 
 <!-- Modal QR Code -->
 <div class="modal fade" id="qrDemoModal" tabindex="-1" aria-labelledby="qrDemoModalLabel" aria-hidden="true">

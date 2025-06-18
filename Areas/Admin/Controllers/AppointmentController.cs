@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using MyMvcApp.Models;
 using MyMvcApp.Services.Interfaces;
 using MyMvcApp.Data;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Areas.Admin.Controllers
 {
@@ -34,30 +34,23 @@ namespace MyMvcApp.Areas.Admin.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var appointments = await _context.Appointments
-                .Include(a => a.Patient)
-                .Include(a => a.Service)
-                .Include(a => a.Dentist)
-                .OrderByDescending(a => a.AppointmentDate)
-                .ThenBy(a => a.StartTime)
-                .ToListAsync();
-
-            return View(appointments);
+            // Dữ liệu sẽ được load bằng AJAX, không cần pass model
+            return View();
         }
 
         public async Task<IActionResult> Create()
         {
             ViewBag.Patients = (await _context.Patients
-                .Select(p => new { Id = p.Id, Name = p.FullName })
+                .Select(p => new { p.Id, Name = p.FullName })
                 .ToListAsync())
                 .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
                 .ToList();
 
             ViewBag.Services = (await _context.Services
                 .Where(s => s.IsActive)
-                .Select(s => new { Id = s.Id, Name = s.Name })
+                .Select(s => new { s.Id, s.Name })
                 .ToListAsync())
                 .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToList();
@@ -162,9 +155,9 @@ namespace MyMvcApp.Areas.Admin.Controllers
                     .Where(a => a.DentistId == appointment.DentistId 
                         && a.AppointmentDate.Date == appointment.AppointmentDate.Date
                         && a.Status != "Cancelled"
-                        && ((a.StartTime <= appointment.StartTime && a.EndTime > appointment.StartTime)
-                            || (a.StartTime < appointment.EndTime && a.EndTime >= appointment.EndTime)
-                            || (a.StartTime >= appointment.StartTime && a.EndTime <= appointment.EndTime)))
+                        && (a.StartTime <= appointment.StartTime && a.EndTime > appointment.StartTime
+                            || a.StartTime < appointment.EndTime && a.EndTime >= appointment.EndTime
+                            || a.StartTime >= appointment.StartTime && a.EndTime <= appointment.EndTime))
                     .FirstOrDefaultAsync();
 
                 if (overlappingAppointment != null)
@@ -262,13 +255,13 @@ namespace MyMvcApp.Areas.Admin.Controllers
             }
 
             ViewBag.Patients = (await _context.Patients
-                .Select(p => new { Id = p.Id, Name = p.FullName })
+                .Select(p => new { p.Id, Name = p.FullName })
                 .ToListAsync())
                 .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
                 .ToList();
             ViewBag.Services = (await _context.Services
                 .Where(s => s.IsActive)
-                .Select(s => new { Id = s.Id, Name = s.Name })
+                .Select(s => new { s.Id, s.Name })
                 .ToListAsync())
                 .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToList();
@@ -343,13 +336,13 @@ namespace MyMvcApp.Areas.Admin.Controllers
 
             // Reload ViewBag data if model is invalid
             ViewBag.Patients = (await _context.Patients
-                .Select(p => new { Id = p.Id, Name = p.FullName })
+                .Select(p => new { p.Id, Name = p.FullName })
                 .ToListAsync())
                 .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
                 .ToList();
             ViewBag.Services = (await _context.Services
                 .Where(s => s.IsActive)
-                .Select(s => new { Id = s.Id, Name = s.Name })
+                .Select(s => new { s.Id, s.Name })
                 .ToListAsync())
                 .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToList();
@@ -414,14 +407,14 @@ namespace MyMvcApp.Areas.Admin.Controllers
         {
             // Load ViewBag data for the modal form
             ViewBag.Patients = (await _context.Patients
-                .Select(p => new { Id = p.Id, Name = p.FullName })
+                .Select(p => new { p.Id, Name = p.FullName })
                 .ToListAsync())
                 .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
                 .ToList();
 
             ViewBag.Services = (await _context.Services
                 .Where(s => s.IsActive)
-                .Select(s => new { Id = s.Id, Name = s.Name })
+                .Select(s => new { s.Id, s.Name })
                 .ToListAsync())
                 .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToList();
@@ -441,27 +434,45 @@ namespace MyMvcApp.Areas.Admin.Controllers
             return View(appointments);
         }
 
-        public async Task<IActionResult> TestAccess()
+        // API debug để kiểm tra dữ liệu lịch hẹn
+        [HttpGet("DebugAppointments")]
+        public async Task<IActionResult> DebugAppointments(DateTime? date = null)
         {
-            // Load ViewBag data for testing
-            ViewBag.Patients = (await _context.Patients
-                .Select(p => new { Id = p.Id, Name = p.FullName })
-                .ToListAsync())
-                .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
-                .ToList();
+            IQueryable<Appointment> query = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Service)
+                .Include(a => a.Dentist);
 
-            ViewBag.Services = (await _context.Services
-                .Where(s => s.IsActive)
-                .Select(s => new { Id = s.Id, Name = s.Name })
-                .ToListAsync())
-                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
-                .ToList();
+            if (date.HasValue)
+            {
+                var targetDate = date.Value.Date;
+                query = query.Where(a => a.AppointmentDate.Date == targetDate);
+            }
 
-            ViewBag.Dentists = (await _userManager.GetUsersInRoleAsync("Dentist"))
-                .Select(d => new SelectListItem { Value = d.Id, Text = d.FullName })
-                .ToList();
+            var appointments = await query
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.StartTime)
+                .ToListAsync();
 
-            return View();
+            var result = appointments.Select(a => new
+            {
+                id = a.Id,
+                patientName = a.Patient.FullName,
+                serviceName = a.Service.Name,
+                dentistName = a.Dentist.FullName,
+                appointmentDate = a.AppointmentDate.ToString("yyyy-MM-dd"),
+                startTime = a.StartTime.ToString(@"hh\:mm"),
+                endTime = a.EndTime.ToString(@"hh\:mm"),
+                status = a.Status,
+                notes = a.Notes,
+                createdAt = a.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+            }).ToList();
+
+            return Json(new { 
+                total = result.Count, 
+                filterDate = date?.ToString("yyyy-MM-dd") ?? "All dates",
+                data = result 
+            });
         }
 
         [HttpGet]
@@ -542,6 +553,59 @@ namespace MyMvcApp.Areas.Admin.Controllers
                 _logger.LogError(ex, "Error marking appointment as completed");
                 return Json(new { success = false, errors = new[] { "Có lỗi xảy ra khi cập nhật trạng thái" } });
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAppointmentsForManagement(string status = "", string date = "")
+        {
+            var query = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Service)
+                .Include(a => a.Dentist)
+                .AsQueryable();
+
+            // Filter theo status nếu có
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(a => a.Status == status);
+            }
+            else
+            {
+                // Mặc định không hiển thị lịch hẹn đã hủy
+                query = query.Where(a => a.Status != "Cancelled");
+            }
+
+            // Filter theo ngày nếu có
+            if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var filterDate))
+            {
+                query = query.Where(a => a.AppointmentDate.Date == filterDate.Date);
+            }
+
+            var appointments = await query
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.StartTime)
+                .ToListAsync();
+
+            var result = appointments.Select(a => new
+            {
+                id = a.Id,
+                patientName = a.PatientName,
+                serviceName = a.Service.Name,
+                appointmentDate = a.AppointmentDate.ToString("dd/MM/yyyy"),
+                appointmentDateSort = a.AppointmentDate.ToString("yyyy-MM-dd"), // Cho việc sắp xếp
+                startTime = a.StartTime.ToString(@"hh\:mm"),
+                status = a.Status,
+                statusBadge = a.Status switch
+                {
+                    "Scheduled" => "bg-primary",
+                    "Completed" => "bg-success", 
+                    "Cancelled" => "bg-danger",
+                    _ => "bg-warning"
+                },
+                notes = a.Notes?.Length > 50 ? a.Notes.Substring(0, 50) + "..." : a.Notes
+            }).ToList();
+
+            return Json(new { data = result });
         }
 
         private bool AppointmentExists(int id)

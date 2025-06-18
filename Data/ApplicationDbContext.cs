@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using MyMvcApp.Models;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Data
 {
@@ -16,7 +16,6 @@ namespace MyMvcApp.Data
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<DentalRecord> DentalRecords { get; set; }
         public DbSet<Service> Services { get; set; }
-        public DbSet<ServiceCategory> ServiceCategories { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
@@ -94,8 +93,7 @@ namespace MyMvcApp.Data
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },
                 new IdentityRole { Id = "2", Name = "Dentist", NormalizedName = "DENTIST" },
-                new IdentityRole { Id = "3", Name = "Staff", NormalizedName = "STAFF" },
-                new IdentityRole { Id = "4", Name = "User", NormalizedName = "USER" }
+                new IdentityRole { Id = "3", Name = "Staff", NormalizedName = "STAFF" }
             );
 
             // Seed admin user

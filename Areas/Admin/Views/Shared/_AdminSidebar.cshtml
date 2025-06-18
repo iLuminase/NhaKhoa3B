@@ -1,0 +1,80 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<nav class="col-md-3 col-lg-2 d-md-block sidebar">
+    <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @(currentAction == "Index" && currentController == "Admin" ? "active" : "")"
+                   href="@Url.Action("Index", "Admin")">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Appointment" ? "active" : "")"
+                   href="@Url.Action("Index", "Appointment")">
+                    <i class="fas fa-calendar-check"></i>
+                    Quản lý lịch hẹn
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentAction == "UserManagement" && currentController == "Admin" ? "active" : "")"
+                   href="@Url.Action("UserManagement", "Admin")">
+                    <i class="fas fa-users"></i>
+                    Quản lý người dùng
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Patient" ? "active" : "")"
+                   href="@Url.Action("Index", "Patient")">
+                    <i class="fas fa-user-injured"></i>
+                    Quản lý bệnh nhân
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentAction == "Services" && currentController == "Admin" ? "active" : "")"
+                   href="@Url.Action("Services", "Admin")">
+                    <i class="fas fa-tooth"></i>
+                    Quản lý dịch vụ
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Payment" ? "active" : "")"
+                   href="@Url.Action("Index", "Payment")">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Quản lý thanh toán
+                </a>
+                @if(currentController == "Payment")
+                {
+                    <ul class="nav ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "Index" ? "active" : "") text-sm"
+                               href="@Url.Action("Index", "Payment")">
+                                <i class="fas fa-circle-notch fa-xs me-1"></i>
+                                Thanh toán chờ xử lý
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "History" ? "active" : "") text-sm"
+                               href="@Url.Action("History", "Payment")">
+                                <i class="fas fa-circle-notch fa-xs me-1"></i>
+                                Lịch sử thanh toán
+                            </a>
+                        </li>
+                    </ul>
+                }
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Report" ? "active" : "")"
+                   href="@Url.Action("Index", "Report")">
+                    <i class="fas fa-chart-bar"></i>
+                    Báo cáo thống kê
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using MyMvcApp.Models;
+using MyMvcApp.Areas.Admin.Models;
 using MyMvcApp.ViewModels.Admin;
 using System.Security.Claims;
 

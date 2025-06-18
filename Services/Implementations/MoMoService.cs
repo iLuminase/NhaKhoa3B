@@ -2,10 +2,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using MyMvcApp.Data;
-using MyMvcApp.Models;
 using MyMvcApp.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Services.Implementations
 {

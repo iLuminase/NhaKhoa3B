@@ -1,0 +1,461 @@
+@using MyMvcApp.Areas.Admin.Models
+@{
+    ViewData["Title"] = "Lịch sử thanh toán";
+}
+
+@section Styles {
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="~/css/admin.css" rel="stylesheet">
+    <style>
+        .payment-method-badge {
+            font-size: 0.8em;
+            padding: 0.25rem 0.5rem;
+        }
+        .payment-amount {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .transaction-id {
+            font-family: monospace;
+            font-size: 0.85em;
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .status-success {
+            color: #28a745;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }        .filter-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        /* Fix modal overflow */
+        .modal-dialog {
+            max-height: 90vh;
+            margin: 1.75rem auto;
+        }
+        
+        .modal-content {
+            max-height: calc(90vh - 3.5rem);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 1rem;
+        }
+        
+        .modal-header,
+        .modal-footer {
+            flex-shrink: 0;
+        }
+          /* Responsive adjustments */
+        @@media (max-width: 576px) {
+            .modal-dialog {
+                max-height: 95vh;
+                margin: 0.5rem;
+            }
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <partial name="_AdminSidebar" />
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="fas fa-history me-2"></i>@ViewData["Title"]
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="@Url.Action("Index")" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách thanh toán
+                    </a>
+                    <button class="btn btn-success" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel me-1"></i>Xuất Excel
+                    </button>
+                </div>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- Bộ lọc -->
+            <div class="filter-section">
+                <h5><i class="fas fa-filter me-2"></i>Bộ lọc</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Từ ngày:</label>
+                        <input type="date" id="fromDate" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Đến ngày:</label>
+                        <input type="date" id="toDate" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phương thức thanh toán:</label>
+                        <select id="paymentMethodFilter" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="MoMo">MoMo</option>
+                            <option value="Cash">Tiền mặt</option>
+                            <option value="Card">Thẻ</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary me-2" onclick="applyFilter()">
+                            <i class="fas fa-search me-1"></i>Lọc
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearFilter()">
+                            <i class="fas fa-times me-1"></i>Xóa
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thống kê tổng quan -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <i class="fas fa-money-bill-wave"></i> Tổng doanh thu
+                            </h5>
+                            <h3 id="totalRevenue" class="text-success">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">
+                                <i class="fas fa-receipt"></i> Số giao dịch
+                            </h5>
+                            <h3 id="totalTransactions" class="text-info">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">
+                                <i class="fas fa-chart-line"></i> Trung bình/giao dịch
+                            </h5>
+                            <h3 id="averageAmount" class="text-warning">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Danh sách lịch sử thanh toán
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="paymentHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Bệnh nhân</th>
+                                    <th>Dịch vụ</th>
+                                    <th>Nha sĩ</th>
+                                    <th>Số tiền</th>
+                                    <th>Phương thức</th>
+                                    <th>Ngày khám</th>
+                                    <th>Ngày thanh toán</th>
+                                    <th>Mã giao dịch</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Payment Details Modal -->
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1" aria-labelledby="paymentDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="paymentDetailsModalLabel">
+                    <i class="fas fa-receipt me-2"></i>Chi tiết thanh toán
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="paymentDetailsContent">
+                <!-- Content will be loaded via AJAX -->
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printReceipt()" id="printReceiptBtn">
+                    <i class="fas fa-print me-1"></i>In hóa đơn
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        var paymentTable;
+        
+        $(document).ready(function() {            // Khởi tạo DataTable
+            paymentTable = $('#paymentHistoryTable').DataTable({
+                ajax: {
+                    url: '@Url.Action("GetPaymentHistory")',
+                    type: 'GET',
+                    data: function(d) {
+                        d.fromDate = $('#fromDate').val();
+                        d.toDate = $('#toDate').val();
+                        d.paymentMethod = $('#paymentMethodFilter').val();
+                    },
+                    dataSrc: 'data'
+                },
+                columns: [
+                    { 
+                        data: 'orderId',
+                        render: function(data) {
+                            return '<span class="transaction-id">' + data + '</span>';
+                        }
+                    },
+                    { data: 'patientName' },
+                    { data: 'serviceName' },
+                    { data: 'dentistName' },
+                    { 
+                        data: 'amount',
+                        render: function(data) {
+                            return '<span class="payment-amount">' + 
+                                   new Intl.NumberFormat('vi-VN', { 
+                                       style: 'currency', 
+                                       currency: 'VND' 
+                                   }).format(data) + '</span>';
+                        }
+                    },                    { 
+                        data: 'paymentMethod',
+                        render: function(data) {
+                            var badgeClass = '';
+                            var icon = '';
+                            switch(data) {
+                                case 'MoMo':
+                                    badgeClass = 'bg-danger';
+                                    icon = 'fas fa-mobile-alt';
+                                    break;
+                                case 'Cash':
+                                    badgeClass = 'bg-success';
+                                    icon = 'fas fa-money-bill';
+                                    break;
+                                case 'Card':
+                                    badgeClass = 'bg-primary';
+                                    icon = 'fas fa-credit-card';
+                                    break;
+                                default:
+                                    badgeClass = 'bg-secondary';
+                                    icon = 'fas fa-question';
+                            }
+                            return '<span class="badge ' + badgeClass + ' payment-method-badge">' +
+                                   '<i class="' + icon + ' me-1"></i>' + data + '</span>';
+                        }
+                    },
+                    { 
+                        data: 'appointmentDateDisplay',
+                        type: 'date',
+                        render: function(data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return row.appointmentDate; // Sử dụng format YYYY-MM-DD để sắp xếp
+                            }
+                            return data; // Hiển thị format DD/MM/YYYY
+                        }
+                    },
+                    { 
+                        data: 'completedAtDisplay',
+                        type: 'date',
+                        render: function(data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return row.completedAt; // Sử dụng format YYYY-MM-DD HH:mm:ss để sắp xếp
+                            }
+                            return data; // Hiển thị format DD/MM/YYYY HH:mm
+                        }
+                    },
+                    { 
+                        data: 'transactionId',
+                        render: function(data) {
+                            return data ? '<span class="transaction-id">' + data + '</span>' : '-';
+                        }
+                    },
+                    {
+                        data: 'id',
+                        render: function(data, type, row) {
+                            return '<button class="btn btn-sm btn-outline-primary" onclick="viewPaymentDetails(' + data + ')">' +
+                                   '<i class="fas fa-eye"></i> Xem chi tiết</button>';
+                        },
+                        orderable: false
+                    }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                order: [[7, 'desc']], // Sắp xếp theo ngày thanh toán mới nhất
+                pageLength: 25,
+                responsive: true,
+                drawCallback: function() {
+                    updateStatistics();
+                }
+            });
+            
+            // Set default date range (last 30 days)
+            var today = new Date();
+            var thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            $('#toDate').val(today.toISOString().split('T')[0]);
+            $('#fromDate').val(thirtyDaysAgo.toISOString().split('T')[0]);
+        });
+        
+        function updateStatistics() {
+            var data = paymentTable.rows({search: 'applied'}).data();
+            var total = 0;
+            var count = data.length;
+            
+            for (var i = 0; i < count; i++) {
+                total += parseFloat(data[i].amount);
+            }
+            
+            var average = count > 0 ? total / count : 0;
+            
+            $('#totalRevenue').text(new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(total));
+            
+            $('#totalTransactions').text(count.toLocaleString('vi-VN'));
+            
+            $('#averageAmount').text(new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(average));
+        }
+          function applyFilter() {
+            // Reload DataTable với filter parameters mới
+            paymentTable.ajax.reload();
+        }
+        
+        function clearFilter() {
+            $('#fromDate').val('');
+            $('#toDate').val('');
+            $('#paymentMethodFilter').val('');
+            // Reload DataTable sau khi clear filter
+            paymentTable.ajax.reload();
+        }        function viewPaymentDetails(id) {
+            // Show loading
+            $('#paymentDetailsContent').html(`
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-2">Đang tải chi tiết thanh toán...</p>
+                </div>
+            `);
+            
+            // Show modal immediately 
+            $('#paymentDetailsModal').modal('show');
+            
+            // Load payment details via AJAX
+            $.get('/Payment/PaymentDetails/' + id, function(data) {
+                $('#paymentDetailsContent').html(data);
+                // Store payment ID for printing
+                $('#paymentDetailsModal').data('payment-id', id);
+            }).fail(function() {
+                $('#paymentDetailsContent').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Có lỗi xảy ra khi tải chi tiết thanh toán!
+                    </div>
+                `);
+            });
+        }
+        
+        function exportToExcel() {
+            var data = paymentTable.rows({search: 'applied'}).data();
+            var exportData = [];
+              // Prepare data for export
+            for (var i = 0; i < data.length; i++) {
+                exportData.push({
+                    'Mã đơn hàng': data[i].orderId,
+                    'Bệnh nhân': data[i].patientName,
+                    'Dịch vụ': data[i].serviceName,
+                    'Nha sĩ': data[i].dentistName,
+                    'Số tiền': data[i].amount,
+                    'Phương thức': data[i].paymentMethod,
+                    'Ngày khám': data[i].appointmentDateDisplay,
+                    'Ngày thanh toán': data[i].completedAtDisplay,
+                    'Mã giao dịch': data[i].transactionId || '',
+                    'Ghi chú': data[i].notes || ''
+                });
+            }
+            
+            // Create workbook and export
+            var ws = XLSX.utils.json_to_sheet(exportData);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Lịch sử thanh toán");
+            
+            var fileName = "lich_su_thanh_toan_" + new Date().toISOString().split('T')[0] + ".xlsx";
+            XLSX.writeFile(wb, fileName);
+        }
+          function printReceipt() {
+            var paymentId = $('#paymentDetailsModal').data('payment-id');
+            if (paymentId) {
+                // Open print page in new window
+                var printWindow = window.open('/Payment/PrintInvoice/' + paymentId, '_blank', 'width=800,height=600');
+                if (printWindow) {
+                    printWindow.onload = function() {
+                        setTimeout(function() {
+                            printWindow.print();
+                        }, 500);
+                    };
+                } else {
+                    alert('Vui lòng cho phép popup để in hóa đơn!');
+                }
+            } else {
+                alert('Không tìm thấy thông tin thanh toán để in!');
+            }
+        }
+    </script>
+}

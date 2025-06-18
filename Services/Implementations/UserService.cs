@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using MyMvcApp.Models;
+using MyMvcApp.Areas.Admin.Models;
 using MyMvcApp.Services.Interfaces;
 using MyMvcApp.ViewModels.Admin;
 using System.Security.Claims;

@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Truy cập bị từ chối";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-ban text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="text-danger mb-3">@ViewData["Title"]</h2>
+                    <p class="lead mb-3">Bạn không có quyền truy cập vào tài nguyên này.</p>
+                    <p class="text-muted mb-4">Nếu bạn cho rằng đây là lỗi, vui lòng liên hệ với quản trị viên hệ thống.</p>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button onclick="goBack()" class="btn btn-primary me-md-2">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </button>
+                        <a asp-area="Admin" asp-controller="Account" asp-action="Login" class="btn btn-secondary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                        </a>
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-2"></i>Trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function goBack() {
+    // Kiểm tra nếu có history để quay lại
+    if (document.referrer && document.referrer !== window.location.href) {
+        window.history.back();
+    } else {
+        // Nếu không có history, redirect về trang chủ
+        window.location.href = '/';
+    }
+}
+</script>

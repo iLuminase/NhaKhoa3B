@@ -1,17 +1,18 @@
-@model MyMvcApp.Models.Appointment
+@using MyMvcApp.Areas.Admin.Models
+@model Appointment
 
 @{
     ViewData["Title"] = "Chi tiết thanh toán";
-    var existingTransaction = ViewBag.ExistingTransaction as MyMvcApp.Models.PaymentTransaction;
+    var existingTransaction = ViewBag.ExistingTransaction as PaymentTransaction;
 }
 
-
-    
+<div class="container-fluid">
+    <div class="row">
         <!-- Sidebar -->
-        
+        <partial name="_AdminSidebar" />
 
         <!-- Main content -->
-        
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Chi tiết thanh toán</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
@@ -27,7 +28,7 @@
                     <h5 class="mb-0">Thông tin lịch hẹn #@Model.Id</h5>
                 </div>
                 <div class="card-body">
-                    
+                    <div class="row">
                         <div class="col-md-6">
                             <dl class="row">
                                 <dt class="col-sm-4">Bệnh nhân:</dt>
@@ -152,7 +153,9 @@
                     </div>
                 </div>
             }
-        
+        </main>
+    </div>
+</div>
 
 <!-- Modal hiển thị QR Code -->
 <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">

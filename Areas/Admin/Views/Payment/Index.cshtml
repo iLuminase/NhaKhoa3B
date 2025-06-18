@@ -1,4 +1,5 @@
-@model IEnumerable<MyMvcApp.ViewModels.Admin.PaymentAppointmentViewModel>
+@using MyMvcApp.Areas.Admin.Models
+@model IEnumerable<Appointment>
 
 @{
     ViewData["Title"] = "Quản lý thanh toán";
@@ -10,13 +11,13 @@
     <link href="~/css/admin.css" rel="stylesheet">
 }
 
-
-    
+<div class="container-fluid">
+    <div class="row">
         <!-- Sidebar -->
-        
+        <partial name="_AdminSidebar" />
 
         <!-- Main content -->
-        
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">
                     <i class="fas fa-credit-card"></i> Quản lý thanh toán
@@ -24,12 +25,13 @@
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <div class="btn-group me-2">
+                        <a href="@Url.Action("History")" class="btn btn-success">
+                            <i class="fas fa-history me-1"></i>Xem lịch sử thanh toán
+                        </a>
+                        <span class="badge bg-info fs-6 ms-2">Lịch hẹn đã hoàn thành chưa thanh toán</span>
                         <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="location.reload()">
                             <i class="fas fa-sync-alt"></i> Làm mới
                         </button>
-                        <a asp-action="DailyRevenueReport" asp-controller="Payment" class="btn btn-sm btn-outline-info ms-2">
-                            <i class="fas fa-chart-line"></i> Báo cáo doanh thu ngày
-                        </a>
                     </div>
                 </div>
             </div>
@@ -65,7 +67,7 @@
                                         <th>Ngày khám</th>
                                         <th>Giờ khám</th>
                                         <th>Số tiền</th>
-                                        <th>Trạng thái thanh toán</th>
+                                        <th>Trạng thái</th>
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
@@ -73,38 +75,29 @@
                                     @foreach (var item in Model)
                                     {
                                         <tr>
-                                            <td>@item.Appointment.Id</td>
-                                            <td>@item.Appointment.Patient.FullName</td>
-                                            <td>@item.Appointment.Service.Name</td>
-                                            <td>@item.Appointment.Dentist.FullName</td>
-                                            <td>@item.Appointment.AppointmentDate.ToString("dd/MM/yyyy")</td>
-                                            <td>@item.Appointment.StartTime.ToString(@"hh\:mm") - @item.Appointment.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@item.Id</td>
+                                            <td>@item.Patient.FullName</td>
+                                            <td>@item.Service.Name</td>
+                                            <td>@item.Dentist.FullName</td>
+                                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
                                             <td>
-                                                <span class="fw-bold text-success">@item.Appointment.Service.Price.ToString("N0") VNĐ</span>
+                                                <span class="fw-bold text-success">@item.Service.Price.ToString("N0") VNĐ</span>
                                             </td>
                                             <td>
-                                                @if (item.IsPaid)
-                                                {
-                                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> @item.PaymentStatusString</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> @item.PaymentStatusString</span>
-                                                }
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock"></i> Chờ thanh toán
+                                                </span>
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    @if (!item.IsPaid)
-                                                    {
-                                                        <button type="button" class="btn btn-sm btn-primary" onclick="createMoMoPayment('@item.Appointment.Id', '@item.Appointment.Patient.FullName', '@item.Appointment.Service.Name', @item.Appointment.Service.Price)">
-                                                            <i class="fas fa-qrcode"></i> Thanh toán MoMo
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-success ms-1" 
-                                                                onclick="directMarkAsCashPaid('@item.Appointment.Id', '@item.Appointment.Patient.FullName', @item.Appointment.Service.Price)">
-                                                            <i class="fas fa-hand-holding-usd"></i> Đã thu tiền
-                                                        </button>
-                                                    }
-                                                    <a href="@Url.Action("PaymentDetails", "Payment", new { appointmentId = item.Appointment.Id })" class="btn btn-sm btn-info ms-1 @(item.IsPaid ? "" : "ms-lg-2")">
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="createMoMoPayment(@item.Id, '@item.Patient.FullName', '@item.Service.Name', @item.Service.Price)">
+                                                        <i class="fas fa-qrcode"></i> MoMo QR
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-success" onclick="createCashPayment(@item.Id, '@item.Patient.FullName', @item.Service.Price)">
+                                                        <i class="fas fa-money-bill-wave"></i> Tiền mặt
+                                                    </button>
+                                                    <a asp-action="PaymentDetails" asp-route-appointmentId="@item.Id" class="btn btn-sm btn-outline-secondary">
                                                         <i class="fas fa-eye"></i> Chi tiết
                                                     </a>
                                                 </div>
@@ -125,7 +118,9 @@
                     }
                 </div>
             </div>
-        
+        </main>
+    </div>
+</div>
 
 <!-- Modal QR Code MoMo -->
 <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
@@ -158,6 +153,8 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
 
 <!-- Modal Xác nhận Tiền mặt -->
 <div class="modal fade" id="cashModal" tabindex="-1" aria-labelledby="cashModalLabel" aria-hidden="true">
@@ -185,24 +182,20 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
 
 @section Scripts {
-    <!-- DataTables CSS and JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Check if DataTable is already initialized
-            if ($.fn.DataTable.isDataTable('#appointmentTable')) {
-                $('#appointmentTable').DataTable().destroy();
-            }
-
-            // Initialize DataTable
             $('#appointmentTable').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
                 },
-                order: [[0, 'desc']],
+                order: [[4, 'desc'], [5, 'desc']], // Sắp xếp theo ngày khám và giờ khám mới nhất
                 pageLength: 25,
                 responsive: true
             });
@@ -222,15 +215,6 @@
         function createMoMoPayment(appointmentId, patientName, serviceName, amount) {
             currentAppointmentId = appointmentId;
 
-            // Kiểm tra và xử lý amount
-            if (!amount || isNaN(amount)) {
-                showError('Số tiền không hợp lệ');
-                return;
-            }
-
-            // Chuyển đổi amount thành số nếu cần
-            const numericAmount = parseFloat(amount);
-
             // Hiển thị thông tin thanh toán
             document.getElementById('payment-info').innerHTML = `
                 <div class="card">
@@ -238,7 +222,7 @@
                         <h6 class="card-title">Thông tin thanh toán:</h6>
                         <p class="mb-1"><strong>Bệnh nhân:</strong> ${patientName}</p>
                         <p class="mb-1"><strong>Dịch vụ:</strong> ${serviceName}</p>
-                        <p class="mb-0"><strong>Số tiền:</strong> <span class="text-success fw-bold">${numericAmount.toLocaleString('vi-VN')} VNĐ</span></p>
+                        <p class="mb-0"><strong>Số tiền:</strong> <span class="text-success fw-bold">${amount.toLocaleString('vi-VN')} VNĐ</span></p>
                     </div>
                 </div>
             `;
@@ -566,21 +550,12 @@
         function createCashPayment(appointmentId, patientName, amount) {
             currentAppointmentId = appointmentId;
 
-            // Kiểm tra và xử lý amount
-            if (!amount || isNaN(amount)) {
-                showError('Số tiền không hợp lệ');
-                return;
-            }
-
-            // Chuyển đổi amount thành số nếu cần
-            const numericAmount = parseFloat(amount);
-
             document.getElementById('cash-payment-info').innerHTML = `
                 <div class="card">
                     <div class="card-body">
                         <h6 class="card-title">Thông tin thanh toán tiền mặt:</h6>
                         <p class="mb-1"><strong>Bệnh nhân:</strong> ${patientName}</p>
-                        <p class="mb-0"><strong>Số tiền cần thu:</strong> <span class="text-success fw-bold fs-5">${numericAmount.toLocaleString('vi-VN')} VNĐ</span></p>
+                        <p class="mb-0"><strong>Số tiền cần thu:</strong> <span class="text-success fw-bold fs-5">${amount.toLocaleString('vi-VN')} VNĐ</span></p>
                     </div>
                 </div>
             `;
@@ -619,69 +594,5 @@
                 alert('Có lỗi xảy ra khi tạo thanh toán tiền mặt');
             });
         }
-
-    // Helper function to show temporary messages
-    function showTemporaryMessage(message, type = 'success', duration = 5000) {
-        const alertId = 'temp-alert-' + Date.now();
-        const alertHtml = `
-            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>`;
-        
-        document.body.insertAdjacentHTML('beforeend', alertHtml);
-
-        setTimeout(() => {
-            const alertElement = document.getElementById(alertId);
-            if (alertElement) {
-                bootstrap.Alert.getOrCreateInstance(alertElement).close();
-            }
-        }, duration);
-    }
-
-    // Function to directly mark an appointment as paid by cash
-    function directMarkAsCashPaid(appointmentId, patientName, amount) {
-        // Kiểm tra và xử lý amount
-        if (!amount || isNaN(amount)) {
-            showError('Số tiền không hợp lệ');
-            return;
-        }
-
-        // Chuyển đổi amount thành số nếu cần
-        const numericAmount = parseFloat(amount);
-
-        if (!confirm(`Xác nhận đã thu tiền mặt ${numericAmount.toLocaleString('vi-VN')} VNĐ cho bệnh nhân ${patientName} (Mã lịch hẹn: ${appointmentId})?`)) {
-            return;
-        }
-
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-        const url = '@Url.Action("CreateCashPayment", "Payment")';
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                'appointmentId': appointmentId,
-                '__RequestVerificationToken': token 
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showTemporaryMessage('Đã cập nhật trạng thái thanh toán tiền mặt thành công!', 'success');
-                setTimeout(() => {
-                    location.reload(); // Reload the page to update the table
-                }, 1500); // Wait a bit for the user to see the message
-            } else {
-                showTemporaryMessage('Lỗi: ' + (data.message || 'Không thể cập nhật trạng thái thanh toán.'), 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('Error marking cash payment:', error);
-            showTemporaryMessage('Có lỗi xảy ra khi thực hiện thao tác.', 'danger');
-        });
-    }
     </script>
 }

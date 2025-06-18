@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace MyMvcApp.Middleware
@@ -8,46 +9,30 @@ namespace MyMvcApp.Middleware
     public class SessionTimeoutMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<SessionTimeoutMiddleware> _logger;
 
-        public SessionTimeoutMiddleware(RequestDelegate next)
+        public SessionTimeoutMiddleware(RequestDelegate next, ILogger<SessionTimeoutMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
-        // Xử lý session timeout - chỉ áp dụng cho session thường, không ảnh hưởng đến Remember Me
         public async Task InvokeAsync(HttpContext context)
         {
-            if (context.User.Identity?.IsAuthenticated == true)
+            if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
             {
-                // Kiểm tra xem có phải là persistent cookie (Remember Me) không
-                var authResult = await context.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+                // Check if session exists
+                if (!context.Session.IsAvailable)
+                {
+                    _logger.LogInformation("Session expired for user {UserId}. Redirecting to login page.",
+                        context.User.FindFirst("sub")?.Value ?? "unknown");
 
-                if (authResult.Succeeded && authResult.Properties != null)
-                {
-                    // Nếu là persistent cookie (Remember Me), bỏ qua kiểm tra session
-                    if (authResult.Properties.IsPersistent)
-                    {
-                        await _next(context);
-                        return;
-                    }
-                }
+                    // Session expired, sign out user
+                    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-                // Chỉ kiểm tra session cho đăng nhập thường (không Remember Me)
-                if (context.Session.IsAvailable)
-                {
-                    // Cập nhật thời gian hoạt động cuối
-                    context.Session.SetString("LastActivity", DateTime.UtcNow.ToString());
-                }
-                else
-                {
-                    // Session không khả dụng và không phải persistent cookie
-                    // Chỉ sign out nếu không phải Remember Me
-                    if (authResult.Properties?.IsPersistent != true)
-                    {
-                        await context.SignOutAsync();
-                        context.Response.Redirect("/Account/Login?expired=true");
-                        return;
-                    }
+                    // Redirect to login page
+                    context.Response.Redirect("/Identity/Account/Login");
+                    return;
                 }
             }
 

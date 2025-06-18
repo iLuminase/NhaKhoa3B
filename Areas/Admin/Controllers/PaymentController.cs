@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using MyMvcApp.Models;
 using MyMvcApp.Services.Interfaces;
 using MyMvcApp.Data;
 using Microsoft.EntityFrameworkCore;
-using MyMvcApp.ViewModels.Admin;
 using System.Threading.Tasks;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin,Staff")]
+    [Route("Payment")]
     public class PaymentController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -30,7 +30,9 @@ namespace MyMvcApp.Areas.Admin.Controllers
             _momoService = momoService;
         }
 
-        // Hiển thị danh sách lịch hẹn đã hoàn thành
+        // Hiển thị danh sách lịch hẹn đã hoàn thành chưa thanh toán
+        [HttpGet("")]
+        [HttpGet("Index")]
         public async Task<IActionResult> Index()
         {
             var completedAppointments = await _context.Appointments
@@ -38,29 +40,12 @@ namespace MyMvcApp.Areas.Admin.Controllers
                 .Include(a => a.Service)
                 .Include(a => a.Dentist)
                 .Where(a => a.Status == "Completed")
-                .OrderByDescending(a => a.AppointmentDate) // Order by date first
+                .Where(a => !_context.PaymentTransactions.Any(pt => pt.AppointmentId == a.Id && pt.Status == "Success"))
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.EndTime)
                 .ToListAsync();
 
-            var viewModelList = new List<PaymentAppointmentViewModel>();
-            foreach (var app in completedAppointments)
-            {
-                var isPaid = await _context.PaymentTransactions
-                                     .AnyAsync(pt => pt.AppointmentId == app.Id && pt.Status == "Success");
-                viewModelList.Add(new PaymentAppointmentViewModel
-                {
-                    Appointment = app,
-                    IsPaid = isPaid,
-                    PaymentStatusString = isPaid ? "Đã thanh toán" : "Chờ thanh toán"
-                });
-            }
-
-            // Sort by payment status (unpaid first), then by appointment date
-            var sortedViewModelList = viewModelList
-                                        .OrderBy(vm => vm.IsPaid) // false (unpaid) comes before true (paid)
-                                        .ThenByDescending(vm => vm.Appointment.AppointmentDate)
-                                        .ToList();
-
-            return View(sortedViewModelList);
+            return View(completedAppointments);
         }
 
         public async Task<IActionResult> Create()
@@ -316,8 +301,9 @@ namespace MyMvcApp.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Xem chi tiết thanh toán cho lịch hẹn
-        public async Task<IActionResult> PaymentDetails(int appointmentId)
+        // Xem chi tiết thanh toán cho lịch hẹn  
+        [HttpGet("PaymentDetails")]
+        public async Task<IActionResult> PaymentDetailsForAppointment(int appointmentId)
         {
             var appointment = await _context.Appointments
                 .Include(a => a.Patient)
@@ -339,7 +325,7 @@ namespace MyMvcApp.Areas.Admin.Controllers
         }
 
         // Tạo thanh toán MoMo
-        [HttpPost]
+        [HttpPost("CreateMoMoPayment")]
         public async Task<IActionResult> CreateMoMoPayment(int appointmentId)
         {
             try
@@ -397,7 +383,7 @@ namespace MyMvcApp.Areas.Admin.Controllers
         }
 
         // Tạo thanh toán tiền mặt
-        [HttpPost]
+        [HttpPost("CreateCashPayment")]
         public async Task<IActionResult> CreateCashPayment(int appointmentId)
         {
             try
@@ -443,6 +429,365 @@ namespace MyMvcApp.Areas.Admin.Controllers
                 _logger.LogError(ex, "Lỗi khi tạo thanh toán tiền mặt");
                 return Json(new { success = false, message = "Có lỗi xảy ra khi tạo thanh toán" });
             }
+        }
+
+        // Xử lý callback từ MoMo
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> PaymentNotify()
+        {
+            try
+            {
+                // Đọc dữ liệu từ MoMo
+                var body = await new StreamReader(Request.Body).ReadToEndAsync();
+                _logger.LogInformation($"MoMo callback: {body}");
+
+                // Xử lý callback từ MoMo ở đây
+                // Trong demo này, chúng ta sẽ giả lập việc xử lý thành công
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xử lý callback MoMo");
+                return BadRequest();
+            }
+        }
+
+        // Trang trả về sau khi thanh toán
+        public async Task<IActionResult> PaymentReturn(string orderId, string resultCode)
+        {
+            var transaction = await _momoService.GetPaymentTransactionAsync(orderId);
+
+            if (transaction != null)
+            {
+                if (resultCode == "0")
+                {
+                    await _momoService.UpdatePaymentStatusAsync(orderId, "Success");
+                    TempData["SuccessMessage"] = "Thanh toán thành công!";
+                }
+                else
+                {
+                    await _momoService.UpdatePaymentStatusAsync(orderId, "Failed");
+                    TempData["ErrorMessage"] = "Thanh toán thất bại!";
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        // Xuất hóa đơn
+        public async Task<IActionResult> GenerateInvoice(int appointmentId)
+        {
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Service)
+                .Include(a => a.Dentist)
+                .FirstOrDefaultAsync(a => a.Id == appointmentId);
+
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            var transaction = await _context.PaymentTransactions
+                .FirstOrDefaultAsync(pt => pt.AppointmentId == appointmentId && pt.Status == "Success");
+
+            if (transaction == null)
+            {
+                TempData["ErrorMessage"] = "Chưa có thanh toán thành công cho lịch hẹn này";
+                return RedirectToAction("PaymentDetailsForAppointment", new { appointmentId });
+            }
+
+            // Thêm thông tin transaction vào ViewBag
+            ViewBag.Transaction = transaction;
+
+            // Log activity
+            var currentUser = await _userService.GetCurrentUserAsync(User);
+            if (currentUser != null)
+            {
+                var activity = new Activity
+                {
+                    Time = DateTime.Now,
+                    Description = $"Xuất hóa đơn cho lịch hẹn #{appointmentId} - {appointment.Patient.FullName}",
+                    UserId = currentUser.Id,
+                    User = currentUser
+                };
+                _context.Activities.Add(activity);
+                await _context.SaveChangesAsync();
+            }
+
+            return View("Invoice", appointment);
+        }
+
+        private string GenerateInvoiceHtml(Appointment appointment, PaymentTransaction transaction)
+        {
+            return $@"
+                <div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;'>
+                    <div style='text-align: center; margin-bottom: 30px;'>
+                        <h1 style='color: #2c3e50;'>HÓA ĐƠN THANH TOÁN</h1>
+                        <p style='color: #7f8c8d;'>Phòng khám nha khoa</p>
+                    </div>
+
+                    <div style='border: 1px solid #ddd; padding: 20px; margin-bottom: 20px;'>
+                        <h3>Thông tin bệnh nhân:</h3>
+                        <p><strong>Họ tên:</strong> {appointment.Patient.FullName}</p>
+                        <p><strong>Email:</strong> {appointment.Patient.Email}</p>
+                        <p><strong>Số điện thoại:</strong> {appointment.Patient.PhoneNumber}</p>
+                    </div>
+
+                    <div style='border: 1px solid #ddd; padding: 20px; margin-bottom: 20px;'>
+                        <h3>Thông tin dịch vụ:</h3>
+                        <p><strong>Dịch vụ:</strong> {appointment.Service.Name}</p>
+                        <p><strong>Bác sĩ:</strong> {appointment.Dentist.FullName}</p>
+                        <p><strong>Ngày khám:</strong> {appointment.AppointmentDate:dd/MM/yyyy}</p>
+                        <p><strong>Giờ khám:</strong> {appointment.StartTime} - {appointment.EndTime}</p>
+                    </div>
+
+                    <div style='border: 1px solid #ddd; padding: 20px; margin-bottom: 20px;'>
+                        <h3>Thông tin thanh toán:</h3>
+                        <p><strong>Mã giao dịch:</strong> {transaction.OrderId}</p>
+                        <p><strong>Phương thức:</strong> {transaction.PaymentMethod}</p>
+                        <p><strong>Ngày thanh toán:</strong> {transaction.CompletedAt:dd/MM/yyyy HH:mm}</p>
+                        <p><strong>Trạng thái:</strong> Đã thanh toán</p>
+                    </div>
+
+                    <div style='text-align: right; font-size: 18px; font-weight: bold; color: #e74c3c;'>
+                        <p>Tổng tiền: {appointment.Service.Price:N0} VNĐ</p>
+                    </div>
+
+                    <div style='text-align: center; margin-top: 30px; color: #7f8c8d;'>
+                        <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+                    </div>
+                </div>";
+        }
+
+        // Xuất hóa đơn PDF
+        public async Task<IActionResult> DownloadInvoicePDF(int appointmentId)
+        {
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Service)
+                .Include(a => a.Dentist)
+                .FirstOrDefaultAsync(a => a.Id == appointmentId);
+
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            var transaction = await _context.PaymentTransactions
+                .FirstOrDefaultAsync(pt => pt.AppointmentId == appointmentId && pt.Status == "Success");
+
+            if (transaction == null)
+            {
+                TempData["ErrorMessage"] = "Chưa có thanh toán thành công cho lịch hẹn này";
+                return RedirectToAction("PaymentDetailsForAppointment", new { appointmentId });
+            }
+
+            // Tạo HTML content cho PDF
+            var htmlContent = GenerateInvoiceHtmlForPDF(appointment, transaction);
+
+            // Trong thực tế, bạn có thể sử dụng thư viện như iTextSharp hoặc PuppeteerSharp để tạo PDF
+            // Ở đây chúng ta sẽ trả về HTML content với header để download
+
+            var fileName = $"HoaDon_{appointment.Id}_{DateTime.Now:yyyyMMdd}.html";
+            var contentType = "text/html";
+            var content = System.Text.Encoding.UTF8.GetBytes(htmlContent);
+
+            return File(content, contentType, fileName);
+        }
+
+
+
+        private string GenerateInvoiceHtmlForPDF(Appointment appointment, PaymentTransaction transaction)
+        {
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Hóa đơn thanh toán</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .info-section {{ margin-bottom: 20px; }}
+        .table {{ width: 100%; border-collapse: collapse; }}
+        .table th, .table td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+        .table th {{ background-color: #f2f2f2; }}
+        .total {{ font-size: 18px; font-weight: bold; text-align: right; margin-top: 20px; }}
+        .qr-section {{ text-align: center; margin: 20px 0; }}
+    </style>
+</head>
+<body>
+    <div class='header'>
+        <h1>HÓA ĐƠN THANH TOÁN</h1>
+        <h2>PHÒNG KHÁM NHA KHOA ABC</h2>
+        <p>Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM</p>
+        <p>Điện thoại: (028) 1234 5678</p>
+    </div>
+
+    <div class='info-section'>
+        <h3>Thông tin bệnh nhân:</h3>
+        <p><strong>Họ tên:</strong> {appointment.Patient.FullName}</p>
+        <p><strong>Ngày sinh:</strong> {(appointment.Patient.DateOfBirth != DateOnly.MinValue ? appointment.Patient.DateOfBirth.ToString("dd/MM/yyyy") : "Chưa cập nhật")}</p>
+        <p><strong>Điện thoại:</strong> {appointment.Patient.PhoneNumber}</p>
+        <p><strong>Email:</strong> {appointment.Patient.Email}</p>
+    </div>
+
+    <div class='info-section'>
+        <h3>Thông tin khám:</h3>
+        <p><strong>Ngày khám:</strong> {appointment.AppointmentDate.ToString("dd/MM/yyyy")}</p>
+        <p><strong>Bác sĩ:</strong> {appointment.Dentist.FullName}</p>
+        <p><strong>Dịch vụ:</strong> {appointment.Service.Name}</p>
+    </div>
+
+    <table class='table'>
+        <thead>
+            <tr>
+                <th>Dịch vụ</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{appointment.Service.Name}</td>
+                <td>1</td>
+                <td>{appointment.Service.Price:N0} VNĐ</td>
+                <td>{appointment.Service.Price:N0} VNĐ</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class='info-section'>
+        <h3>Thông tin giao dịch:</h3>
+        <p><strong>Mã giao dịch:</strong> {transaction.OrderId}</p>
+        <p><strong>Phương thức thanh toán:</strong> {transaction.PaymentMethod}</p>
+        <p><strong>Ngày thanh toán:</strong> {transaction.CompletedAt?.ToString("dd/MM/yyyy HH:mm")}</p>
+        <p><strong>Trạng thái:</strong> Đã thanh toán</p>
+    </div>
+
+    <div class='total'>
+        TỔNG TIỀN: {appointment.Service.Price:N0} VNĐ
+    </div>
+
+    <div class='qr-section'>
+        <p>Mã QR hóa đơn: INVOICE:{appointment.Id}:{appointment.Patient.FullName}:{appointment.Service.Price}:PAID</p>
+    </div>
+
+    <div style='text-align: center; margin-top: 40px;'>
+        <p>Cảm ơn quý khách đã sử dụng dịch vụ!</p>
+        <p><em>Ngày in: {DateTime.Now:dd/MM/yyyy HH:mm}</em></p>
+    </div>
+</body>
+</html>";
+        }
+
+        // Xem chi tiết thanh toán trong History
+        [HttpGet("PaymentDetails/{id}")]
+        public async Task<IActionResult> PaymentDetails(int id)
+        {
+            var payment = await _context.PaymentTransactions
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Patient)
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Service)
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Dentist)
+                .FirstOrDefaultAsync(pt => pt.Id == id);
+
+            if (payment == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_PaymentDetailsPartial", payment);
+        }
+
+        // Xem lịch sử thanh toán đã hoàn thành
+        [HttpGet("History")]
+        public IActionResult History()
+        {
+            // Dữ liệu sẽ được load bằng AJAX
+            return View();
+        }
+
+        // API để lấy dữ liệu lịch sử thanh toán cho DataTable
+        [HttpGet("GetPaymentHistory")]
+        public async Task<IActionResult> GetPaymentHistory(string fromDate = "", string toDate = "", string paymentMethod = "")
+        {
+            var query = _context.PaymentTransactions
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Patient)
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Service)
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Dentist)
+                .Where(pt => pt.Status == "Success")
+                .AsQueryable();
+
+            // Filter theo khoảng thời gian
+            if (!string.IsNullOrEmpty(fromDate) && DateTime.TryParse(fromDate, out var from))
+            {
+                query = query.Where(pt => (pt.CompletedAt ?? pt.CreatedAt).Date >= from.Date);
+            }
+
+            if (!string.IsNullOrEmpty(toDate) && DateTime.TryParse(toDate, out var to))
+            {
+                query = query.Where(pt => (pt.CompletedAt ?? pt.CreatedAt).Date <= to.Date);
+            }
+
+            // Filter theo phương thức thanh toán
+            if (!string.IsNullOrEmpty(paymentMethod))
+            {
+                query = query.Where(pt => pt.PaymentMethod == paymentMethod);
+            }
+
+            var paymentHistory = await query
+                .OrderByDescending(pt => pt.CompletedAt ?? pt.CreatedAt)
+                .Select(pt => new
+                {
+                    id = pt.Id,
+                    orderId = pt.OrderId,
+                    patientName = pt.Appointment.Patient.FullName,
+                    serviceName = pt.Appointment.Service.Name,
+                    dentistName = pt.Appointment.Dentist.FullName,
+                    amount = pt.Amount,
+                    paymentMethod = pt.PaymentMethod,
+                    appointmentDate = pt.Appointment.AppointmentDate.ToString("yyyy-MM-dd"),
+                    appointmentDateDisplay = pt.Appointment.AppointmentDate.ToString("dd/MM/yyyy"),
+                    completedAt = (pt.CompletedAt ?? pt.CreatedAt).ToString("yyyy-MM-dd HH:mm:ss"),
+                    completedAtDisplay = (pt.CompletedAt ?? pt.CreatedAt).ToString("dd/MM/yyyy HH:mm"),
+                    transactionId = pt.TransactionId ?? pt.MoMoTransactionId,
+                    notes = pt.Notes
+                })
+                .ToListAsync();
+
+            return Json(new { data = paymentHistory });
+        }
+
+        // In hóa đơn cho payment transaction
+        [HttpGet("PrintInvoice/{id}")]
+        public async Task<IActionResult> PrintInvoice(int id)
+        {
+            var payment = await _context.PaymentTransactions
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Patient)
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Service)
+                .Include(pt => pt.Appointment)
+                    .ThenInclude(a => a.Dentist)
+                .FirstOrDefaultAsync(pt => pt.Id == id);
+
+            if (payment == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsForPrint = true;
+            return View("PrintInvoice", payment);
         }
 
         private bool PaymentExists(int id)

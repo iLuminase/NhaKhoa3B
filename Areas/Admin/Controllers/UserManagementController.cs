@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyMvcApp.Models;
+using MyMvcApp.Areas.Admin.Models;
 using MyMvcApp.Services.Interfaces;
 using MyMvcApp.ViewModels.Admin;
 
@@ -44,7 +44,6 @@ namespace MyMvcApp.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = await _roleManager.Roles.ToListAsync();
                 return View(model);
             }
 
@@ -81,7 +80,6 @@ namespace MyMvcApp.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = await _roleManager.Roles.ToListAsync();
                 return View(model);
             }
 
@@ -102,14 +100,10 @@ namespace MyMvcApp.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _userService.DeleteUserAsync(id);
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(new { success = result.Success, message = result.Success ? "Người dùng đã được xóa." : "Không thể xóa người dùng." });
-            }
-
             if (result.Success)
             {
                 TempData["SuccessMessage"] = "Người dùng đã được xóa.";
@@ -123,14 +117,10 @@ namespace MyMvcApp.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(string id)
         {
             var result = await _userService.ToggleUserStatusAsync(id);
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(new { success = result.Success, message = result.Success ? "Trạng thái người dùng đã được cập nhật." : "Không thể cập nhật trạng thái người dùng." });
-            }
-
             if (result.Success)
             {
                 TempData["SuccessMessage"] = "Trạng thái người dùng đã được cập nhật.";
@@ -143,4 +133,4 @@ namespace MyMvcApp.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
     }
-}
+} 

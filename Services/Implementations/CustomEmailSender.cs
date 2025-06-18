@@ -3,7 +3,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity;
-using MyMvcApp.Models;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Services.Implementations
 {

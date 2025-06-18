@@ -1,0 +1,125 @@
+@using MyMvcApp.Areas.Admin.Models
+@model PaymentTransaction
+
+<div class="container-fluid p-0">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <h6 class="text-primary"><i class="fas fa-receipt me-2"></i>Thông tin thanh toán</h6>
+            <table class="table table-borderless">
+                <tr>
+                    <td><strong>Mã đơn hàng:</strong></td>
+                    <td><span class="badge bg-primary">@Model.OrderId</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Số tiền:</strong></td>
+                    <td><span class="text-success fw-bold">@Model.Amount.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Phương thức:</strong></td>
+                    <td>
+                        @{
+                            var badgeClass = Model.PaymentMethod switch
+                            {
+                                "MoMo" => "bg-danger",
+                                "Cash" => "bg-success", 
+                                "Card" => "bg-primary",
+                                _ => "bg-secondary"
+                            };
+                            var icon = Model.PaymentMethod switch
+                            {
+                                "MoMo" => "fas fa-mobile-alt",
+                                "Cash" => "fas fa-money-bill",
+                                "Card" => "fas fa-credit-card", 
+                                _ => "fas fa-question"
+                            };
+                        }
+                        <span class="badge @badgeClass">
+                            <i class="@icon me-1"></i>@Model.PaymentMethod
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Trạng thái:</strong></td>
+                    <td><span class="badge bg-success">@Model.Status</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Ngày thanh toán:</strong></td>
+                    <td>@((Model.CompletedAt ?? Model.CreatedAt).ToString("dd/MM/yyyy HH:mm"))</td>
+                </tr>
+                @if (!string.IsNullOrEmpty(Model.TransactionId) || !string.IsNullOrEmpty(Model.MoMoTransactionId))
+                {
+                    <tr>
+                        <td><strong>Mã giao dịch:</strong></td>
+                        <td><span class="badge bg-info">@(Model.TransactionId ?? Model.MoMoTransactionId)</span></td>
+                    </tr>
+                }
+            </table>
+        </div>
+        
+        <div class="col-md-6">
+            <h6 class="text-primary"><i class="fas fa-user-injured me-2"></i>Thông tin bệnh nhân & dịch vụ</h6>
+            <table class="table table-borderless">
+                <tr>
+                    <td><strong>Bệnh nhân:</strong></td>
+                    <td>@Model.Appointment.Patient.FullName</td>
+                </tr>
+                <tr>
+                    <td><strong>Số điện thoại:</strong></td>
+                    <td>@Model.Appointment.Patient.PhoneNumber</td>
+                </tr>
+                <tr>
+                    <td><strong>Dịch vụ:</strong></td>
+                    <td>@Model.Appointment.Service.Name</td>
+                </tr>
+                <tr>
+                    <td><strong>Nha sĩ:</strong></td>
+                    <td>@Model.Appointment.Dentist.FullName</td>
+                </tr>
+                <tr>
+                    <td><strong>Ngày khám:</strong></td>
+                    <td>@Model.Appointment.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                </tr>
+                <tr>
+                    <td><strong>Giờ khám:</strong></td>
+                    <td>@Model.Appointment.StartTime.ToString(@"hh\:mm") - @Model.Appointment.EndTime.ToString(@"hh\:mm")</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    @if (!string.IsNullOrEmpty(Model.Notes))
+    {
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="text-primary"><i class="fas fa-sticky-note me-2"></i>Ghi chú</h6>
+                <div class="alert alert-light">
+                    @Model.Notes
+                </div>
+            </div>
+        </div>
+    }
+    
+    @if (Model.PaymentMethod == "MoMo" && !string.IsNullOrEmpty(Model.MoMoTransactionId))
+    {
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="text-primary"><i class="fas fa-mobile-alt me-2"></i>Thông tin MoMo</h6>
+                <table class="table table-borderless table-sm">
+                    @if (!string.IsNullOrEmpty(Model.MoMoTransactionId))
+                    {
+                        <tr>
+                            <td><strong>Transaction ID:</strong></td>
+                            <td><span class="badge bg-danger">@Model.MoMoTransactionId</span></td>
+                        </tr>
+                    }                    @if (!string.IsNullOrEmpty(Model.RequestId))
+                    {
+                        <tr>
+                            <td><strong>Request ID:</strong></td>
+                            <td><code>@Model.RequestId</code></td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    }
+</div>

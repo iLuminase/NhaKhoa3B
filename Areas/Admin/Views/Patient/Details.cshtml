@@ -1,16 +1,17 @@
-@model MyMvcApp.Models.Patient
+@using MyMvcApp.Areas.Admin.Models
+@model Patient
 
 @{
     ViewData["Title"] = "Chi tiết bệnh nhân";
 }
 
-
-    
+<div class="container-fluid">
+    <div class="row">
         <!-- Sidebar -->
-        
+        <partial name="_AdminSidebar" />
 
         <!-- Main content -->
-        
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Chi tiết bệnh nhân</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
@@ -23,7 +24,7 @@
                 </div>
             </div>
 
-            
+            <div class="row">
                 <div class="col-md-6">
                     <div class="card mb-4">
                         <div class="card-header">
@@ -179,4 +180,6 @@
                     </div>
                 </div>
             </div>
-        
+        </main>
+    </div>
+</div>

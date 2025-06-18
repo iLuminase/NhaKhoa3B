@@ -1,4 +1,4 @@
-using MyMvcApp.Models;
+using MyMvcApp.Areas.Admin.Models;
 
 namespace MyMvcApp.Services.Interfaces
 {

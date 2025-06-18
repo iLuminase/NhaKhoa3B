@@ -1,9 +1,10 @@
-@model MyMvcApp.Models.Appointment
+@using MyMvcApp.Areas.Admin.Models
+@model Appointment
 
 @{
     ViewData["Title"] = "Hóa đơn thanh toán";
     Layout = null; // Không sử dụng layout để in
-    var transaction = ViewBag.Transaction as MyMvcApp.Models.PaymentTransaction;
+    var transaction = ViewBag.Transaction as PaymentTransaction;
 }
 
 <!DOCTYPE html>
@@ -112,7 +113,7 @@
             <!-- Thông tin bệnh nhân -->
             <div class="info-section">
                 <h5><i class="fas fa-user"></i> Thông tin bệnh nhân</h5>
-                
+                <div class="row">
                     <div class="col-md-6">
                         <p><strong>Họ tên:</strong> @Model.Patient.FullName</p>
                         <p><strong>Email:</strong> @Model.Patient.Email</p>
@@ -127,7 +128,7 @@
             <!-- Thông tin dịch vụ -->
             <div class="info-section">
                 <h5><i class="fas fa-medical-kit"></i> Thông tin dịch vụ</h5>
-                
+                <div class="row">
                     <div class="col-md-6">
                         <p><strong>Dịch vụ:</strong> @Model.Service.Name</p>
                         <p><strong>Mô tả:</strong> @(Model.Service.Description ?? "Không có")</p>
@@ -254,6 +255,7 @@
                 </small>
             </div>
         </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
