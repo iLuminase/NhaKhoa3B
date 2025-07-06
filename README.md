@@ -21,7 +21,9 @@
 ![image](https://github.com/user-attachments/assets/648dde3d-107f-4042-b3c0-f84b163f9e9a)
 
 <h2>5. Quản lý account người dùng</h2>
+
 ![image](https://github.com/user-attachments/assets/05b5df2d-dfc5-4390-b00c-71168055157d)
+
 ...Các CRUD khác cho bệnh nhân và bác sĩ...
 <h2>6. Quản lý thanh toán-Tích hợp QR MOMO(chỉ triển khai trên local nên chưa lấy success message từ app Sandbox của MOMO)</h2>
 
