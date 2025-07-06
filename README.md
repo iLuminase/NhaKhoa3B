@@ -1,4 +1,47 @@
-# 🦷 Dental Service Web Application
+<h1># 🦷 Dental Service Web Application
+</h1>
+<h2>1. Trang Chủ</h2>
+
+![image](https://github.com/user-attachments/assets/6e9ae933-47e7-463b-8c5b-7a914d4d6dd5)
+
+<h2>2. Trang đăng nhập và đăng ký</h2>
+
+![image](https://github.com/user-attachments/assets/ed7fb046-7e5a-4f96-a688-67d19dc61840)
+
+![image](https://github.com/user-attachments/assets/534e5272-961a-48bc-9216-5ad3cd80f44e)
+
+<h2>3. Trang quản lý admin</h2>
+
+![image](https://github.com/user-attachments/assets/d1eb2172-6d57-4887-82ff-943497257a12)
+
+<h2>4. Trang đặt lịch hẹn và quản lý lịch</h2>
+
+![image](https://github.com/user-attachments/assets/5cd34fa6-9709-4a00-99ad-b551a69dd8df)
+
+![image](https://github.com/user-attachments/assets/648dde3d-107f-4042-b3c0-f84b163f9e9a)
+
+<h2>5. Quản lý account người dùng</h2>
+![image](https://github.com/user-attachments/assets/05b5df2d-dfc5-4390-b00c-71168055157d)
+...Các CRUD khác cho bệnh nhân và bác sĩ...
+<h2>6. Quản lý thanh toán-Tích hợp QR MOMO(chỉ triển khai trên local nên chưa lấy success message từ app Sandbox của MOMO)</h2>
+
+![image](https://github.com/user-attachments/assets/82be1d27-3402-40da-8ffe-41163744731c)
+
+![image](https://github.com/user-attachments/assets/56f1a14e-1e10-448c-b272-09c85974a2db)
+
+![image](https://github.com/user-attachments/assets/4bd4762b-f9d7-4a84-a2e0-1a2e48d2c539)
+
+<h2>6.1 Quản lý lịch sử thanh toán và in hoá đơn</h2>
+
+![image](https://github.com/user-attachments/assets/108b9e39-b3ac-4719-ae20-cdb1bf4b700f)
+
+![image](https://github.com/user-attachments/assets/637710ed-a633-4ee3-be2e-072d139d43e4)
+
+<h2>7. Báo cáo thống kê</h2>
+
+![image](https://github.com/user-attachments/assets/fe4081fd-53ab-4d2f-81a8-3f7dd7b31d92)
+
+## Đang phát triển thêm...
 
 Ứng dụng web quản lý dịch vụ nha khoa được xây dựng bằng ASP.NET Core MVC với Entity Framework Core và SQL Server.
 
