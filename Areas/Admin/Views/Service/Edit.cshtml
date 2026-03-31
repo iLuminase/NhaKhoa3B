@@ -1,0 +1,128 @@
+@using MyMvcApp.Areas.Admin.Models
+@model Service
+
+@{
+    ViewData["Title"] = "Sửa dịch vụ";
+}
+
+@section Styles {
+    <link href="~/css/admin.css" rel="stylesheet">
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <partial name="_AdminSidebar" />
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">@ViewData["Title"]</h1>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <form asp-action="Edit" method="post">
+                                <input type="hidden" asp-for="Id" />
+
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">Tên dịch vụ *</label>
+                                    <input asp-for="Name" class="form-control" placeholder="Nhập tên dịch vụ" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label">Mô tả</label>
+                                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả dịch vụ"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="Price" class="form-label">Giá (VNĐ) *</label>
+                                            <input asp-for="Price" class="form-control" type="number" step="1000" min="0" placeholder="Nhập giá" />
+                                            <span asp-validation-for="Price" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="DurationMinutes" class="form-label">Thời gian (phút) *</label>
+                                            <input asp-for="DurationMinutes" class="form-control" type="number" min="1" max="480" step="5" placeholder="Nhập thời gian (phút)" />
+                                            <small class="form-text text-muted">Từ 1 đến 480 phút (8 giờ)</small>
+                                            <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Category" class="form-label">Danh mục</label>
+                                    <select asp-for="Category" class="form-control">
+                                        <option value="">-- Chọn danh mục --</option>
+                                        <option value="Khám">Khám</option>
+                                        <option value="Điều trị">Điều trị</option>
+                                        <option value="Làm sạch">Làm sạch</option>
+                                        <option value="Niềng răng">Niềng răng</option>
+                                        <option value="Trồng implant">Trồng implant</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                    <span asp-validation-for="Category" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsActive" class="form-check-label">
+                                        Đang hoạt động
+                                    </label>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Cập nhật
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Hủy
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Thông tin</h5>
+                            <p class="small">
+                                <strong>ID:</strong> @Model.Id<br />
+                                <strong>Tạo lúc:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")<br />
+                                @if (Model.UpdatedAt.HasValue)
+                                {
+                                    <span><strong>Cập nhật lúc:</strong> @Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Real-time validation for DurationMinutes
+        document.getElementById("DurationMinutes").addEventListener("change", function() {
+            const duration = parseInt(this.value);
+            if (duration < 1 || duration > 480) {
+                this.classList.add("is-invalid");
+            } else {
+                this.classList.remove("is-invalid");
+            }
+        });
+    </script>
+}

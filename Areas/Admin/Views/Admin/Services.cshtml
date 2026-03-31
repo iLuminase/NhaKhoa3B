@@ -51,7 +51,7 @@
                                         <td>@item.Name</td>
                                         <td>@(item.Description?.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</td>
                                         <td>@item.Price.ToString("N0") VNĐ</td>
-                                        <td>@item.Duration.ToString(@"hh\:mm")</td>
+                                        <td>@item.DurationDisplay</td>
                                         <td>@item.Category</td>
                                         <td>
                                             <span class="badge @(item.IsActive ? "bg-success" : "bg-danger")">

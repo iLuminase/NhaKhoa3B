@@ -12,8 +12,8 @@ using MyMvcApp.Data;
 namespace MyMvcApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250523160433_SeedAllData")]
-    partial class SeedAllData
+    [Migration("20260330102613_ChangeDurationToMinutes")]
+    partial class ChangeDurationToMinutes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,7 +191,7 @@ namespace MyMvcApp.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Activity", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Activity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -217,7 +217,7 @@ namespace MyMvcApp.Migrations
                     b.ToTable("Activities");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.ApplicationUser", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -306,8 +306,8 @@ namespace MyMvcApp.Migrations
                         {
                             Id = "1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "3c2ae855-6c03-4400-a5b6-f8cfc729b671",
-                            CreatedAt = new DateTime(2025, 5, 23, 23, 4, 33, 425, DateTimeKind.Local).AddTicks(3369),
+                            ConcurrencyStamp = "0938f911-7228-4c7c-9d8e-844b662bafe8",
+                            CreatedAt = new DateTime(2026, 3, 30, 17, 26, 12, 83, DateTimeKind.Local).AddTicks(9450),
                             DateOfBirth = new DateOnly(1990, 1, 1),
                             Email = "admin@dental.com",
                             EmailConfirmed = true,
@@ -317,15 +317,15 @@ namespace MyMvcApp.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DENTAL.COM",
                             NormalizedUserName = "ADMIN@DENTAL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHDqPUFbV+dNaL1xS8qyz8CRZffun/OzKDRkuuT4KtrySXcYj8HjvwZqTAUlo2AFMg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEM4YixjEM0QZKfrWolecmFGOipYr5HNV5LfcgspkWUrhdHZ9qp8kCh6gZLvMXGPU2A==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6f698628-f3e8-480e-a7da-896c9dc0716f",
+                            SecurityStamp = "ede809b8-01ce-4df2-9bcd-5e17b6b89e4b",
                             TwoFactorEnabled = false,
                             UserName = "admin@dental.com"
                         });
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Appointment", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Appointment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -393,7 +393,7 @@ namespace MyMvcApp.Migrations
                     b.ToTable("Appointments");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.DentalRecord", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.DentalRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -442,7 +442,7 @@ namespace MyMvcApp.Migrations
                     b.ToTable("DentalRecords");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Patient", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Patient", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -473,6 +473,9 @@ namespace MyMvcApp.Migrations
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("MedicalHistory")
                         .HasColumnType("nvarchar(max)");
 
@@ -488,7 +491,7 @@ namespace MyMvcApp.Migrations
                     b.ToTable("Patients");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Payment", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -513,9 +516,6 @@ namespace MyMvcApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PatientId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PatientId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("PaymentDate")
@@ -544,14 +544,74 @@ namespace MyMvcApp.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("PatientId1");
-
                     b.HasIndex("ServiceId");
 
                     b.ToTable("Payments");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Service", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.PaymentTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MoMoTransactionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QrCodeUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Service", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -561,7 +621,8 @@ namespace MyMvcApp.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -572,17 +633,19 @@ namespace MyMvcApp.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -597,7 +660,7 @@ namespace MyMvcApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", null)
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", null)
                         .WithMany("Roles")
                         .HasForeignKey("ApplicationUserId");
                 });
@@ -613,7 +676,7 @@ namespace MyMvcApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", null)
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -622,7 +685,7 @@ namespace MyMvcApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", null)
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -637,7 +700,7 @@ namespace MyMvcApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", null)
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -646,16 +709,16 @@ namespace MyMvcApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", null)
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Activity", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Activity", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", "User")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -664,27 +727,27 @@ namespace MyMvcApp.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Appointment", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Appointment", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", "CreatedByUser")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", "Dentist")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", "Dentist")
                         .WithMany()
                         .HasForeignKey("DentistId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.Patient", "Patient")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Patient", "Patient")
                         .WithMany("Appointments")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.Service", "Service")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -699,15 +762,15 @@ namespace MyMvcApp.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.DentalRecord", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.DentalRecord", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.ApplicationUser", "Dentist")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.ApplicationUser", "Dentist")
                         .WithMany()
                         .HasForeignKey("DentistId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.Patient", "Patient")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Patient", "Patient")
                         .WithMany("DentalRecords")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -718,25 +781,21 @@ namespace MyMvcApp.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Payment", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Payment", b =>
                 {
-                    b.HasOne("MyMvcApp.Models.Appointment", "Appointment")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Appointment", "Appointment")
                         .WithMany()
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.Patient", "Patient")
-                        .WithMany()
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Patient", "Patient")
+                        .WithMany("Payments")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyMvcApp.Models.Patient", null)
-                        .WithMany("Payments")
-                        .HasForeignKey("PatientId1");
-
-                    b.HasOne("MyMvcApp.Models.Service", "Service")
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -749,12 +808,23 @@ namespace MyMvcApp.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.ApplicationUser", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.PaymentTransaction", b =>
+                {
+                    b.HasOne("MyMvcApp.Areas.Admin.Models.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Roles");
                 });
 
-            modelBuilder.Entity("MyMvcApp.Models.Patient", b =>
+            modelBuilder.Entity("MyMvcApp.Areas.Admin.Models.Patient", b =>
                 {
                     b.Navigation("Appointments");
 

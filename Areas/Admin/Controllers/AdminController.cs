@@ -400,7 +400,7 @@ namespace MyMvcApp.Areas.Admin.Controllers
                 name = service.Name,
                 description = service.Description,
                 price = service.Price,
-                duration = service.Duration.TotalMinutes,
+                duration = service.DurationMinutes,
                 category = service.Category,
                 isActive = service.IsActive
             });
@@ -420,7 +420,7 @@ namespace MyMvcApp.Areas.Admin.Controllers
                 existingService.Name = service.Name;
                 existingService.Description = service.Description;
                 existingService.Price = service.Price;
-                existingService.Duration = TimeSpan.FromMinutes(service.Duration.TotalMinutes);
+                existingService.DurationMinutes = service.DurationMinutes;
                 existingService.Category = service.Category;
                 existingService.IsActive = service.IsActive;
                 existingService.UpdatedAt = DateTime.Now;

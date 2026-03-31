@@ -280,58 +280,101 @@ namespace MyMvcApp.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            try
             {
+                var currentUser = await _userService.GetCurrentUserAsync(User);
+                if (currentUser == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Không tìm thấy thông tin người dùng hiện tại.");
+                    return View(appointment);
+                }
+
+                // Validate appointment date
+                if (appointment.AppointmentDate.Date < DateTime.Today)
+                {
+                    ModelState.AddModelError(string.Empty, "Ngày hẹn không thể là ngày trong quá khứ.");
+                    return View(appointment);
+                }
+
+                // Validate time range
+                if (appointment.StartTime >= appointment.EndTime)
+                {
+                    ModelState.AddModelError(string.Empty, "Thời gian kết thúc phải sau thời gian bắt đầu.");
+                    return View(appointment);
+                }
+
+                // Load related entities
+                var patient = await _context.Patients.FindAsync(appointment.PatientId);
+                var service = await _context.Services.FindAsync(appointment.ServiceId);
+                var dentist = await _userManager.FindByIdAsync(appointment.DentistId);
+
+                if (patient == null || service == null || dentist == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Không tìm thấy thông tin liên quan.");
+                    return View(appointment);
+                }
+
+                // Check for overlapping appointments (excluding current appointment)
+                var overlappingAppointment = await _context.Appointments
+                    .Where(a => a.Id != id // Exclude current appointment
+                        && a.DentistId == appointment.DentistId 
+                        && a.AppointmentDate.Date == appointment.AppointmentDate.Date
+                        && a.Status != "Cancelled"
+                        && (a.StartTime <= appointment.StartTime && a.EndTime > appointment.StartTime
+                            || a.StartTime < appointment.EndTime && a.EndTime >= appointment.EndTime
+                            || a.StartTime >= appointment.StartTime && a.EndTime <= appointment.EndTime))
+                    .FirstOrDefaultAsync();
+
+                if (overlappingAppointment != null)
+                {
+                    ModelState.AddModelError(string.Empty, "Thời gian này đã có lịch hẹn khác.");
+                    return View(appointment);
+                }
+
+                // Update appointment
+                appointment.PatientName = patient.FullName;
+                appointment.UpdatedAt = DateTime.Now;
+                appointment.Patient = patient;
+                appointment.Service = service;
+                appointment.Dentist = dentist;
+
+                _context.Update(appointment);
+
+                // Log activity
+                var activity = new Activity
+                {
+                    Time = DateTime.Now,
+                    Description = $"Đã cập nhật lịch hẹn cho bệnh nhân: {appointment.PatientName}",
+                    UserId = currentUser.Id,
+                    User = currentUser
+                };
+                _context.Activities.Add(activity);
+
                 try
                 {
-                    var currentUser = await _userService.GetCurrentUserAsync(User);
-                    if (currentUser == null)
-                    {
-                        return Json(new { success = false, errors = new[] { "Không tìm thấy thông tin người dùng hiện tại." } });
-                    }
-
-                    // Load related entities
-                    var patient = await _context.Patients.FindAsync(appointment.PatientId);
-                    var service = await _context.Services.FindAsync(appointment.ServiceId);
-                    var dentist = await _userManager.FindByIdAsync(appointment.DentistId);
-
-                    if (patient == null || service == null || dentist == null)
-                    {
-                        return Json(new { success = false, errors = new[] { "Không tìm thấy thông tin liên quan." } });
-                    }
-
-                    // Update appointment
-                    appointment.PatientName = patient.FullName;
-                    appointment.UpdatedAt = DateTime.Now;
-                    appointment.Patient = patient;
-                    appointment.Service = service;
-                    appointment.Dentist = dentist;
-
-                    _context.Update(appointment);
-
-                    // Log activity
-                    var activity = new Activity
-                    {
-                        Time = DateTime.Now,
-                        Description = $"Đã cập nhật lịch hẹn cho bệnh nhân: {appointment.PatientName}",
-                        UserId = currentUser.Id,
-                        User = currentUser
-                    };
-                    _context.Activities.Add(activity);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Cập nhật lịch hẹn thành công.";
+                    return RedirectToAction(nameof(Calendar));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateException ex)
                 {
-                    if (!AppointmentExists(appointment.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    _logger.LogError(ex, "Error updating appointment");
+                    ModelState.AddModelError(string.Empty, "Có lỗi xảy ra khi lưu lịch hẹn. Vui lòng thử lại.");
                 }
-                return RedirectToAction(nameof(Calendar));
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Concurrency error updating appointment");
+                if (!AppointmentExists(appointment.Id))
+                {
+                    return NotFound();
+                }
+                ModelState.AddModelError(string.Empty, "Lịch hẹn đã bị thay đổi bởi người dùng khác. Vui lòng tải lại trang.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Edit action");
+                ModelState.AddModelError(string.Empty, "Có lỗi xảy ra: " + ex.Message);
             }
 
             // Reload ViewBag data if model is invalid
@@ -400,7 +443,7 @@ namespace MyMvcApp.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            return Json(service.Duration.TotalMinutes);
+            return Json(service.DurationMinutes);
         }
 
         public async Task<IActionResult> Calendar()

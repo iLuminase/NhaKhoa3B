@@ -28,7 +28,8 @@ namespace MyMvcApp.Migrations
                     MedicalHistory = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Allergies = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -290,8 +291,7 @@ namespace MyMvcApp.Migrations
                     PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PatientId = table.Column<int>(type: "int", nullable: false),
-                    ServiceId = table.Column<int>(type: "int", nullable: false),
-                    PatientId1 = table.Column<int>(type: "int", nullable: true)
+                    ServiceId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -309,16 +309,43 @@ namespace MyMvcApp.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Payments_Patients_PatientId1",
-                        column: x => x.PatientId1,
-                        principalTable: "Patients",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_Payments_Services_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AppointmentId = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RequestId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MoMoTransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PayUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    QrCodeUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
+                        principalTable: "Appointments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -379,7 +406,7 @@ namespace MyMvcApp.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "CreatedAt", "DateOfBirth", "Email", "EmailConfirmed", "FullName", "Gender", "IsActive", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "1", 0, null, "30a25234-d565-48ba-85cd-ab1b8b6cda0b", new DateTime(2025, 5, 23, 22, 50, 45, 945, DateTimeKind.Local).AddTicks(4778), new DateOnly(1990, 1, 1), "admin@dental.com", true, "System Administrator", "Male", true, false, null, "ADMIN@DENTAL.COM", "ADMIN@DENTAL.COM", "AQAAAAIAAYagAAAAELtkySmLhPPqHNXJ4ONVt0CGkOAtPUeWkQNH4gTyP0gAi5U0l/ru8+lWhwXHbaFTgQ==", null, false, "65d75c4a-77de-4d69-916e-02481dafaec4", false, "admin@dental.com" });
+                values: new object[] { "1", 0, null, "4f4f22ee-8133-4334-9d32-c3e99e8f231e", new DateTime(2026, 3, 30, 17, 13, 24, 864, DateTimeKind.Local).AddTicks(6619), new DateOnly(1990, 1, 1), "admin@dental.com", true, "System Administrator", "Male", true, false, null, "ADMIN@DENTAL.COM", "ADMIN@DENTAL.COM", "AQAAAAIAAYagAAAAEBGHGubGfva1ioGLvxPX1Yv+0iuwMG/f6lJDVFJb5CLBuN9hTLIur4+IeYD0ZaurlA==", null, false, "37791d41-e296-4c1e-ab4d-1b0641a3507c", false, "admin@dental.com" });
 
             migrationBuilder.InsertData(
                 table: "UserRoles",
@@ -432,14 +459,14 @@ namespace MyMvcApp.Migrations
                 column: "PatientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payments_PatientId1",
-                table: "Payments",
-                column: "PatientId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Payments_ServiceId",
                 table: "Payments",
                 column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_AppointmentId",
+                table: "PaymentTransactions",
+                column: "AppointmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -497,6 +524,9 @@ namespace MyMvcApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "PaymentTransactions");
 
             migrationBuilder.DropTable(
                 name: "RoleClaims");

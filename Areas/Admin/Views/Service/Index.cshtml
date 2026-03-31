@@ -59,7 +59,7 @@
                                         <td>@item.Name</td>
                                         <td>@(item.Description?.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</td>
                                         <td>@item.Price.ToString("N0") VNĐ</td>
-                                        <td>@item.Duration.ToString(@"hh\:mm")</td>
+                                        <td>@item.DurationDisplay</td>
                                         <td>@item.Category</td>
                                         <td>
                                             <span class="badge @(item.IsActive ? "bg-success" : "bg-danger")">
@@ -91,7 +91,6 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
@@ -100,9 +99,16 @@
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
                 },
-                order: [[0, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [2, 7] }, // Disable sort for Description and Actions
+                    { type: 'numeric', targets: 0 },
+                    { type: 'currency', targets: 3 }
+                ],
+                order: [[0, 'asc']],
                 pageLength: 25,
-                responsive: true
+                responsive: true,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Tất cả']],
+                dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>t<"row mt-3"<"col-md-6"i><"col-md-6"p>>'
             });
         });
     </script>

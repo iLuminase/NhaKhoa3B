@@ -32,11 +32,11 @@
                         <table class="table table-bordered" id="userTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Full Name</th>
+                                    <th>Tên người dùng</th>
                                     <th>Email</th>
-                                    <th>Created At</th>
-                                    <th>Is Active</th>
-                                    <th>Roles</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Trạng thái</th>
+                                    <th>Vai trò</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
@@ -46,8 +46,12 @@
                                     <tr>
                                         <td>@user.FullName</td>
                                         <td>@user.Email</td>
-                                        <td>@user.CreatedAt</td>
-                                        <td>@user.IsActive</td>
+                                        <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            <span class="badge @(user.IsActive ? "bg-success" : "bg-danger")">
+                                                @(user.IsActive ? "Đang hoạt động" : "Ngừng hoạt động")
+                                            </span>
+                                        </td>
                                         <td>@string.Join(", ", user.RoleNames)</td>
                                         <td>
                                             <div class="btn-group" role="group">
@@ -79,7 +83,6 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
@@ -88,9 +91,15 @@
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
                 },
-                order: [[2, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [4, 5] }, // Disable sort for Roles and Actions
+                    { type: 'date', targets: 2 } // Format date column
+                ],
+                order: [[2, 'desc']], // Sort by Created At descending
                 pageLength: 25,
-                responsive: true
+                responsive: true,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Tất cả']],
+                dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>t<"row mt-3"<"col-md-6"i><"col-md-6"p>>'
             });
         });
 

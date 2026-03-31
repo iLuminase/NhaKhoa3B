@@ -84,27 +84,57 @@ namespace MyMvcApp.Areas.Admin.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
+                try
                 {
-                    var user = await _userManager.FindByEmailAsync(model.Email);
-                    if (user == null)
+                    var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                    if (result.Succeeded)
                     {
-                        ModelState.AddModelError(string.Empty, "User not found.");
-                        return View(model);
+                        var user = await _userManager.FindByEmailAsync(model.Email);
+                        if (user == null)
+                        {
+                            ModelState.AddModelError(string.Empty, "Tài khoản không tồn tại.");
+                            _logger.LogWarning($"Login attempt with non-existent email: {model.Email}");
+                            return View(model);
+                        }
+
+                        // Check if user is active
+                        if (!user.IsActive)
+                        {
+                            ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+                            _logger.LogWarning($"Login attempt with inactive user: {model.Email}");
+                            return View(model);
+                        }
+
+                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        {
+                            _logger.LogInformation($"Admin user logged in: {model.Email}");
+                            return RedirectToAction("Index", "Admin");
+                        }
+                        else if (await _userManager.IsInRoleAsync(user, "Dentist") || await _userManager.IsInRoleAsync(user, "Staff"))
+                        {
+                            _logger.LogInformation($"Dentist/Staff user logged in: {model.Email}");
+                            return RedirectToAction("Index", "User");
+                        }
+                        _logger.LogInformation($"Regular user logged in: {model.Email}");
+                        return RedirectToAction("Index", "Home");
                     }
 
-                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    if (result.IsLockedOut)
                     {
-                        return RedirectToAction("Index", "Admin");
+                        ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa do nhiều lần đăng nhập thất bại. Vui lòng thử lại sau.");
+                        _logger.LogWarning($"Login attempt to locked out account: {model.Email}");
                     }
-                    else if (await _userManager.IsInRoleAsync(user, "Dentist") || await _userManager.IsInRoleAsync(user, "Staff"))
+                    else
                     {
-                        return RedirectToAction("Index", "User");
+                        ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
+                        _logger.LogWarning($"Failed login attempt for: {model.Email}");
                     }
-                    return RedirectToAction("Index", "Home");
                 }
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");
+                    _logger.LogError($"Exception during login: {ex.Message}");
+                }
             }
             return View(model);
         }

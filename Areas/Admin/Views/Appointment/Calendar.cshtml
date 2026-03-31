@@ -306,9 +306,17 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+    <script>
+        // Use defer and ensure jQuery is already loaded from layout
+        if (typeof $ === 'undefined') {
+            // Only load jQuery if not already loaded
+            var script = document.createElement('script');
+            script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+            document.head.appendChild(script);
+        }
+    </script>
     <script>
         // Hàm tạo màu ngẫu nhiên
         function getRandomColor() {

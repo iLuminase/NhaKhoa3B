@@ -24,6 +24,7 @@ namespace MyMvcApp.Areas.Admin.Models
         public string? Allergies { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
+        public bool IsActive { get; set; } = true;
 
         // Navigation properties
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
