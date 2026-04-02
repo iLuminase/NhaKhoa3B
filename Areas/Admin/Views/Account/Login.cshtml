@@ -1,38 +1,115 @@
 @model MyMvcApp.ViewModels.LoginViewModel
 
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Đăng nhập hệ thống";
+    Layout = "~/Views/Shared/_LayoutLanding.cshtml";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <h2>@ViewData["Title"]</h2>
-        <form method="post">
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
-                <label asp-for="Email" class="form-label"></label>
-                <span asp-validation-for="Email" class="text-danger"></span>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-header">
+                    <h3 class="text-center font-weight-light my-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>@ViewData["Title"]
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form id="loginForm" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div id="lockout-message" class="alert alert-warning text-center" role="alert" style="display: none;">
+                            <!-- Thông báo khóa tài khoản sẽ hiển thị ở đây -->
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" id="emailInput" placeholder="name@example.com" autocomplete="email" aria-required="true" />
+                            <label asp-for="Email">Địa chỉ Email</label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" autocomplete="current-password" aria-required="true" />
+                            <label asp-for="Password">Mật khẩu</label>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" asp-for="RememberMe" />
+                            <label class="form-check-label" asp-for="RememberMe">
+                                @Html.DisplayNameFor(m => m.RememberMe)
+                            </label>
+                        </div>
+                        <div class="d-grid">
+                            <button id="loginSubmit" type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Đăng nhập
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">
+                        <a asp-action="Login">Quay lại trang đăng nhập</a>
+                    </div>
+                </div>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" />
-                <label asp-for="Password" class="form-label"></label>
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="checkbox mb-3">
-                <label asp-for="RememberMe" class="form-label">
-                    <input class="form-check-input" asp-for="RememberMe" />
-                    @Html.DisplayNameFor(m => m.RememberMe)
-                </label>
-            </div>
-            <div>
-                <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-} 
+    <script>
+        $(document).ready(function () {
+            const emailInput = $('#emailInput');
+            const loginSubmitBtn = $('#loginSubmit');
+            const lockoutMessageDiv = $('#lockout-message');
+
+            // Hàm để kiểm tra trạng thái khóa
+            async function checkLockoutStatus() {
+                const email = emailInput.val();
+                if (!email) {
+                    lockoutMessageDiv.hide();
+                    loginSubmitBtn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/Admin/Account/CheckLockoutStatus?email=${encodeURIComponent(email)}`);
+                    if (!response.ok) {
+                        // Nếu có lỗi server, tạm thời cho phép đăng nhập
+                        loginSubmitBtn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+                        lockoutMessageDiv.hide();
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (data.isLocked) {
+                        lockoutMessageDiv.html(`Tài khoản này đang bị khóa. <br>Vui lòng thử lại sau <strong>${data.lockoutEnd}</strong>.`);
+                        lockoutMessageDiv.show();
+                        loginSubmitBtn.prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');
+                    } else {
+                        lockoutMessageDiv.hide();
+                        loginSubmitBtn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi kiểm tra trạng thái khóa:", error);
+                    // Gặp lỗi, tạm thời cho phép đăng nhập để tránh chặn người dùng hợp lệ
+                    loginSubmitBtn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+                    lockoutMessageDiv.hide();
+                }
+            }
+
+            // Sử dụng debounce để tránh gọi API liên tục
+            let debounceTimer;
+            emailInput.on('keyup', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(checkLockoutStatus, 500); // Chờ 500ms sau khi người dùng ngừng gõ
+            });
+
+            // Kiểm tra ngay khi trang tải xong (nếu có email sẵn)
+            if (emailInput.val()) {
+                checkLockoutStatus();
+            }
+        });
+    </script>
+}

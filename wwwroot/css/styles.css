@@ -116,7 +116,6 @@ body {
 
 .navbar-brand:hover {
     color: var(--primary-dark) !important;
-    transform: translateY(-1px);
     transition: all 0.3s ease;
 }
 
@@ -138,7 +137,6 @@ body {
 .nav-link:hover {
     color: var(--primary-color) !important;
     background-color: var(--bg-secondary);
-    transform: translateY(-2px);
 }
 
 .nav-link.active {
@@ -166,7 +164,6 @@ body {
 .dropdown-item:hover {
     background-color: var(--bg-secondary);
     color: var(--primary-color);
-    transform: translateX(4px);
 }
 
 .dropdown-header {
@@ -217,7 +214,7 @@ body {
 }
 
 .btn:hover::before {
-    left: 100%;
+    left: -100%;
 }
 
 .btn-primary {
@@ -229,8 +226,6 @@ body {
 .btn-primary:hover {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
     color: var(--text-white);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
 }
 
 .btn-success {
@@ -262,7 +257,6 @@ body {
 .btn-outline-primary:hover {
     background: var(--primary-color);
     color: var(--text-white);
-    transform: translateY(-2px);
 }
 
 .btn-sm {
@@ -286,8 +280,7 @@ body {
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .card-header {
@@ -387,8 +380,6 @@ body {
 .footer-link:hover {
     color: var(--accent-color);
     background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .footer-link i {

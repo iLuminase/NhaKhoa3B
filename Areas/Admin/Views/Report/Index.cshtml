@@ -1,11 +1,10 @@
+@model MyMvcApp.ViewModels.MonthlyRevenueViewModel
 @{
-    ViewData["Title"] = "Báo cáo";
+    ViewData["Title"] = "Báo cáo doanh thu tháng";
 }
 
 @section Styles {
-    <link href="~/css/styles.css" rel="stylesheet">
-    <link href="~/css/admin.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.css" rel="stylesheet">
 }
 
 <div class="container-fluid">
@@ -15,89 +14,143 @@
 
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom animate-fade-in-up">
-                <h1 class="h2 gradient-text">
-                    <i class="fas fa-chart-bar me-3"></i>Báo Cáo & Thống Kê
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="fas fa-chart-line me-2"></i>@ViewData["Title"]: @Model.Month
                 </h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-calendar-alt me-2"></i>Chọn thời gian
-                        </button>
-                        <button type="button" class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-file-excel me-2"></i>Xuất Excel
-                        </button>
+            </div>
+
+            <!-- Filter Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form asp-action="Index" method="get" class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="year" class="form-label">Năm</label>
+                            <select name="year" id="year" class="form-select">
+                                @foreach (var y in ViewBag.Years)
+                                {
+                                    <option value="@y" selected="@(y == ViewBag.CurrentYear)">@y</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <label for="month" class="form-label">Tháng</label>
+                            <select name="month" id="month" class="form-select">
+                                @foreach (var m in ViewBag.Months)
+                                {
+                                    <option value="@m.Value" selected="@(m.Value == ViewBag.CurrentMonth)">@m.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-auto mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i>Xem báo cáo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-dollar-sign me-2"></i>Tổng doanh thu</h5>
+                            <p class="card-text fs-4 fw-bold">@Model.TotalRevenue.ToString("N0") VNĐ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-calendar-check me-2"></i>Tổng số lịch hẹn</h5>
+                            <p class="card-text fs-4 fw-bold">@Model.TotalAppointments</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Stats Overview -->
-            <div class="row mb-4 stagger-animation">
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card border-left-primary shadow h-100 py-2 hover-lift">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Doanh thu tháng này
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">125,500,000 VNĐ</div>
-                                    <div class="text-muted small mt-1">
-                                        <i class="fas fa-arrow-up text-success me-1"></i>
-                                        <span class="text-success">15%</span> so với tháng trước
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="statistics-icon">
-                                        <i class="fas fa-money-bill-wave"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Revenue Chart -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Biểu đồ doanh thu theo ngày</h6>
                 </div>
-
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card border-left-success shadow h-100 py-2 hover-lift">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Lượt khám tháng này
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">342</div>
-                                    <div class="text-muted small mt-1">
-                                        <i class="fas fa-arrow-up text-success me-1"></i>
-                                        <span class="text-success">8%</span> tăng trưởng
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="statistics-icon bg-success">
-                                        <i class="fas fa-user-injured"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="card-body">
+                    <canvas id="revenueChart"></canvas>
                 </div>
+            </div>
+        </main>
+    </div>
+</div>
 
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card border-left-info shadow h-100 py-2 hover-lift">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Dịch vụ phổ biến
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">Tẩy trắng răng</div>
-                                    <div class="text-muted small mt-1">
-                                        <i class="fas fa-star text-warning me-1"></i>
-                                        <span class="text-info">45%</span> tổng doanh thu
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="statistics-icon bg-info">
-                                        <i class="fas fa-tooth"></i>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dailyData = @Html.Raw(Json.Serialize(Model.DailyBreakdown));
+            const daysInMonth = new Date(@ViewBag.CurrentYear, @ViewBag.CurrentMonth, 0).getDate();
+
+            const labels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+            const data = Array(daysInMonth).fill(0);
+
+            dailyData.forEach(item => {
+                data[item.day - 1] = item.revenue;
+            });
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        backgroundColor: 'rgba(46, 139, 139, 0.6)',
+                        borderColor: 'rgba(46, 139, 139, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value, index, values) {
+                                    return value.toLocaleString('vi-VN') + ' VNĐ';
+                                }
+                            }
+                        },
+                        x: {
+                           ticks: {
+                                maxRotation: 0,
+                                minRotation: 0
+                           }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toLocaleString('vi-VN') + ' VNĐ';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}
                                     </div>
                                 </div>
                             </div>

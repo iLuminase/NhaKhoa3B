@@ -54,19 +54,23 @@
                                         </td>
                                         <td>@string.Join(", ", user.RoleNames)</td>
                                         <td>
-                                            <div class="btn-group" role="group">
                                                 <a href="@Url.Action("EditUser", "Admin", new { id = user.Id })"
-                                                   class="btn btn-sm btn-primary">
+                                                   class="btn btn-sm btn-primary" title="Chỉnh sửa">
                                                     <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="@Url.Action("ResetPassword", "Admin", new { userId = user.Id })"
+                                                   class="btn btn-sm btn-secondary" title="Đặt lại mật khẩu">
+                                                    <i class="fas fa-key"></i>
                                                 </a>
                                                 <button type="button"
                                                         class="btn btn-sm @(user.IsActive ? "btn-warning" : "btn-success")"
-                                                        onclick="toggleUserStatus('@user.Id', @user.IsActive.ToString().ToLower())">
+                                                        onclick="toggleUserStatus('@user.Id', @user.IsActive.ToString().ToLower())"
+                                                        title="@(user.IsActive ? "Khóa tài khoản" : "Mở khóa tài khoản")">
                                                     <i class="fas @(user.IsActive ? "fa-lock" : "fa-unlock")"></i>
                                                 </button>
                                                 <button type="button"
                                                         class="btn btn-sm btn-danger"
-                                                        onclick="deleteUser('@user.Id')">
+                                                        onclick="deleteUser('@user.Id')" title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -88,6 +92,7 @@
     <script>
         $(document).ready(function() {
             $('#userTable').DataTable({
+                destroy: true,
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
                 },

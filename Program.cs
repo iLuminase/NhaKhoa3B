@@ -26,6 +26,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 8;
+
+    // Cấu hình Lockout
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromHours(24);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();

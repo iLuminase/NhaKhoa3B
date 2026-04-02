@@ -1,103 +1,77 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using MyMvcApp.ViewModels;
-using MyMvcApp.Services.Interfaces;
 using MyMvcApp.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Linq;
-using MyMvcApp.Areas.Admin.Models;
+using System;
+using MyMvcApp.ViewModels;
+using System.Globalization;
 
 namespace MyMvcApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class ReportController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IUserService _userService;
 
-        public ReportController(ApplicationDbContext context, IUserService userService)
+        public ReportController(ApplicationDbContext context)
         {
             _context = context;
-            _userService = userService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int? year, int? month)
         {
-            return View();
-        }
+            // Nếu không có năm tháng, lấy tháng hiện tại
+            var targetDate = (year.HasValue && month.HasValue)
+                ? new DateTime(year.Value, month.Value, 1)
+                : DateTime.Today;
 
-        public IActionResult RevenueReport(DateTime? startDate, DateTime? endDate)
-        {
-            startDate ??= DateTime.Today.AddMonths(-1);
-            endDate ??= DateTime.Today;
+            var firstDayOfMonth = new DateTime(targetDate.Year, targetDate.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
-            var revenueData = _context.Payments
-                .Where(p => p.PaymentDate >= startDate && p.PaymentDate <= endDate)
-                .GroupBy(p => p.PaymentDate.Date)
-                .Select(g => new RevenueReportViewModel
+            // Lấy dữ liệu thanh toán trong tháng
+            var paymentsInMonth = await _context.Payments
+                .Where(p => p.PaymentDate >= firstDayOfMonth && p.PaymentDate <= lastDayOfMonth)
+                .OrderBy(p => p.PaymentDate)
+                .ToListAsync();
+
+            // Xử lý dữ liệu
+            var dailyBreakdown = paymentsInMonth
+                .GroupBy(p => p.PaymentDate.Day)
+                .Select(g => new DailyRevenue
                 {
-                    Date = g.Key,
-                    TotalAmount = g.Sum(p => p.Amount)
+                    Day = g.Key,
+                    Revenue = g.Sum(p => p.Amount)
                 })
-                .OrderBy(r => r.Date)
                 .ToList();
 
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
-            return View(revenueData);
-        }
+            var model = new MonthlyRevenueViewModel
+            {
+                Month = firstDayOfMonth.ToString("MMMM yyyy", new CultureInfo("vi-VN")),
+                TotalRevenue = paymentsInMonth.Sum(p => p.Amount),
+                TotalAppointments = paymentsInMonth.Select(p => p.AppointmentId).Distinct().Count(),
+                DailyBreakdown = dailyBreakdown
+            };
 
-        public IActionResult ServiceReport(DateTime? startDate, DateTime? endDate)
-        {
-            startDate ??= DateTime.Today.AddMonths(-1);
-            endDate ??= DateTime.Today;
-
-            var serviceData = _context.Payments
-                .Where(p => p.PaymentDate >= startDate && p.PaymentDate <= endDate)
-                .GroupBy(p => p.Service.Name)
-                .Select(g => new ServiceReportViewModel
-                {
-                    ServiceName = g.Key,
-                    TotalCount = g.Count(),
-                    TotalRevenue = g.Sum(p => p.Amount)
-                })
-                .OrderByDescending(s => s.TotalRevenue)
+            // Dữ liệu cho dropdowns
+            ViewBag.Years = await _context.Payments
+                .Select(p => p.PaymentDate.Year)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToListAsync();
+            ViewBag.Months = Enumerable.Range(1, 12)
+                .Select(m => new { Value = m, Name = new DateTime(2000, m, 1).ToString("MMMM", new CultureInfo("vi-VN")) })
                 .ToList();
 
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
-            return View(serviceData);
+            ViewBag.CurrentYear = targetDate.Year;
+            ViewBag.CurrentMonth = targetDate.Month;
+
+            return View(model);
         }
-
-        public IActionResult PatientReport()
-        {
-            var patientData = _context.Patients
-                .Select(p => new PatientReportViewModel
-                {
-                    PatientName = p.Name,
-                    TotalAppointments = p.Appointments.Count,
-                    TotalPayments = p.Payments.Sum(pay => pay.Amount),
-                    LastVisit = p.Appointments
-                        .OrderByDescending(a => a.AppointmentDate)
-                        .Select(a => (DateTime?)a.AppointmentDate)
-                        .FirstOrDefault()
-                })
-                .OrderByDescending(p => p.TotalPayments)
-                .ToList();
-
-            return View(patientData);
-        }
-
-        public IActionResult StaffReport(DateTime? startDate, DateTime? endDate)
-        {
-            startDate ??= DateTime.Today.AddMonths(-1);
-            endDate ??= DateTime.Today;
-
-            var staffData = _context.Activities
-                .Where(a => a.Time >= startDate && a.Time <= endDate)
-                .GroupBy(a => a.User.UserName)
+    }
+}
                 .Select(g => new StaffReportViewModel
                 {
                     StaffName = g.Key,

@@ -293,6 +293,74 @@ namespace MyMvcApp.Areas.Admin.Controllers
             return Json(new { success = false, message = "Có lỗi xảy ra khi xóa người dùng" });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var model = new AdminResetPasswordViewModel
+            {
+                UserId = user.Id,
+                Email = user.Email
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(AdminResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+            {
+                // This should not happen if the form is not tampered with
+                return NotFound();
+            }
+
+            // First, remove any existing password
+            if (await _userManager.HasPasswordAsync(user))
+            {
+                var removeResult = await _userManager.RemovePasswordAsync(user);
+                if (!removeResult.Succeeded)
+                {
+                    ModelState.AddModelError(string.Empty, "Không thể xóa mật khẩu cũ.");
+                    return View(model);
+                }
+            }
+
+            // Then, add the new password
+            var addResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+            if (addResult.Succeeded)
+            {
+                // Optionally, unlock the user if they were locked out
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
+                }
+
+                TempData["SuccessMessage"] = $"Mật khẩu cho người dùng {user.Email} đã được đặt lại thành công.";
+                return RedirectToAction(nameof(UserManagement));
+            }
+
+            foreach (var error in addResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+
         public async Task<IActionResult> Patients()
         {
             var patients = await _context.Patients

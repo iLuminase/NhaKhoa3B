@@ -27,6 +27,12 @@ namespace MyMvcApp.Areas.Admin.Models
         [Display(Name = "Trạng thái")]
         public bool IsActive { get; set; } = true;
 
+        [Display(Name = "Đang bị khóa")]
+        public bool IsLocked { get; set; } = false;
+
+        [Display(Name = "Thời gian khóa")]
+        public DateTime? LockoutTime { get; set; }
+
         public virtual ICollection<IdentityRole> Roles { get; set; } = new List<IdentityRole>();
     }
-} 
+}

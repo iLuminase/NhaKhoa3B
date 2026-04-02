@@ -48,16 +48,16 @@ namespace MyMvcApp.Services.Implementations
 
         public async Task SendPasswordResetLinkAsync(ApplicationUser user, string email, string resetLink)
         {
-            var subject = "Đặt lại mật khẩu";
-            var message = $"Để đặt lại mật khẩu, vui lòng <a href='{resetLink}'>click vào đây</a>.";
-            await SendEmailAsync(email, subject, message);
-        }
-
-        public async Task SendPasswordResetCodeAsync(ApplicationUser user, string email, string resetCode)
-        {
-            var subject = "Mã đặt lại mật khẩu";
-            var message = $"Mã đặt lại mật khẩu của bạn là: {resetCode}";
+            var subject = "Đặt lại mật khẩu của bạn";
+            var message = $@"
+                <p>Xin chào {user.FullName},</p>
+                <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
+                <p>Vui lòng nhấp vào liên kết bên dưới để đặt lại mật khẩu của bạn. Liên kết này sẽ hết hạn sau 24 giờ.</p>
+                <p><a href='{resetLink}' style='display: inline-block; padding: 10px 20px; font-size: 16px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;'>Đặt lại mật khẩu</a></p>
+                <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                <p>Trân trọng,<br>Đội ngũ Nha Khoa 3B</p>
+            ";
             await SendEmailAsync(email, subject, message);
         }
     }
-} 
+}

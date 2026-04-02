@@ -86,31 +86,50 @@ namespace MyMvcApp.Areas.Admin.Controllers
             {
                 try
                 {
-                    var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+
+                    // 1. Pre-check if the user is already locked out.
+                    if (user != null && await _userManager.IsLockedOutAsync(user))
+                    {
+                        _logger.LogWarning($"Login attempt for an already locked out account: {model.Email}");
+                        ModelState.AddModelError(string.Empty, "Tài khoản này hiện đang bị khóa. Vui lòng thử lại sau 24 giờ.");
+                        return View(model);
+                    }
+
+                    // 2. Attempt to sign in.
+                    var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+
                     if (result.Succeeded)
                     {
-                        var user = await _userManager.FindByEmailAsync(model.Email);
-                        if (user == null)
+                        // This should be the same user object from before.
+                        var successfulUser = user ?? await _userManager.FindByEmailAsync(model.Email);
+                        if (successfulUser == null)
                         {
+                            // This is an edge case and should not happen.
                             ModelState.AddModelError(string.Empty, "Tài khoản không tồn tại.");
-                            _logger.LogWarning($"Login attempt with non-existent email: {model.Email}");
+                            _logger.LogWarning($"Login succeeded but user not found: {model.Email}");
                             return View(model);
                         }
 
-                        // Check if user is active
-                        if (!user.IsActive)
+                        // 3. Reset access failed count on successful login.
+                        await _userManager.ResetAccessFailedCountAsync(successfulUser);
+
+                        // 4. Check if user is active (original logic).
+                        if (!successfulUser.IsActive)
                         {
-                            ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+                            ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.");
                             _logger.LogWarning($"Login attempt with inactive user: {model.Email}");
+                            await _signInManager.SignOutAsync(); // Sign out immediately.
                             return View(model);
                         }
 
-                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        // 5. Redirect based on role (original logic).
+                        if (await _userManager.IsInRoleAsync(successfulUser, "Admin"))
                         {
                             _logger.LogInformation($"Admin user logged in: {model.Email}");
                             return RedirectToAction("Index", "Admin");
                         }
-                        else if (await _userManager.IsInRoleAsync(user, "Dentist") || await _userManager.IsInRoleAsync(user, "Staff"))
+                        else if (await _userManager.IsInRoleAsync(successfulUser, "Dentist") || await _userManager.IsInRoleAsync(successfulUser, "Staff"))
                         {
                             _logger.LogInformation($"Dentist/Staff user logged in: {model.Email}");
                             return RedirectToAction("Index", "User");
@@ -121,12 +140,25 @@ namespace MyMvcApp.Areas.Admin.Controllers
 
                     if (result.IsLockedOut)
                     {
-                        ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa do nhiều lần đăng nhập thất bại. Vui lòng thử lại sau.");
-                        _logger.LogWarning($"Login attempt to locked out account: {model.Email}");
+                        // This handles the case where the user is locked out on THIS attempt.
+                        _logger.LogWarning($"User account just locked out: {model.Email}");
+                        ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa trong 24 giờ do nhập sai mật khẩu quá nhiều lần.");
                     }
                     else
                     {
-                        ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
+                        // Failed attempt, but not locked out yet.
+                        if (user != null)
+                        {
+                            var failedAttempts = await _userManager.GetAccessFailedCountAsync(user);
+                            var maxAttempts = _userManager.Options.Lockout.MaxFailedAccessAttempts;
+                            var remainingAttempts = maxAttempts - failedAttempts;
+                            ModelState.AddModelError(string.Empty, $"Email hoặc mật khẩu không đúng. Bạn còn {remainingAttempts} lần thử trước khi tài khoản bị khóa.");
+                        }
+                        else
+                        {
+                            // User not found.
+                            ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
+                        }
                         _logger.LogWarning($"Failed login attempt for: {model.Email}");
                     }
                 }
@@ -290,12 +322,38 @@ namespace MyMvcApp.Areas.Admin.Controllers
             return View();
         }
 
+
         [HttpGet]
-        [Route("Admin/Account/RegisterPublic")]
-        public IActionResult RegisterPublic()
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckLockoutStatus(string email)
         {
-            return View();
+            if (string.IsNullOrEmpty(email))
+            {
+                return Json(new { isLocked = false });
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                // Để bảo mật, không tiết lộ tài khoản không tồn tại
+                return Json(new { isLocked = false });
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                // Chuyển sang giờ địa phương và định dạng cho thân thiện
+                var localLockoutEnd = lockoutEnd?.ToLocalTime();
+                return Json(new
+                {
+                    isLocked = true,
+                    lockoutEnd = localLockoutEnd?.ToString("HH:mm 'ngày' dd/MM/yyyy")
+                });
+            }
+
+            return Json(new { isLocked = false });
         }
+
 
         [HttpPost]
         [Route("Admin/Account/RegisterPublic")]
